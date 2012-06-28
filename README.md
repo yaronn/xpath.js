@@ -1,8 +1,9 @@
 ## xpath.js
-An xpath pure-javascript module for node.
+An xpath module for node, written in pure javascript.
+
 Originally written by Cameron McCormack ([blog](http://mcc.id.au/xpathjs)). 
 
-For more information visit [my blog](http://webservices20.blogspot.com/).
+Prepared as a node module by Yaron Naveh [blog](http://webservices20.blogspot.com/).
 
 ## Install
 Install with [npm](http://github.com/isaacs/npm):
@@ -24,12 +25,11 @@ xpath.js is xml engine agnostic but I recommend to use it with [xmldom](https://
 	var nodes = select(doc, "//title")
 	console.log(nodes[0].localName + ": " + nodes[0].firstChild.data)
 	console.log("node: " + nodes[0].toString())
-
-	-->
+`````
+-->
 
 	title: Harry Potter
 	Node: <title>Harry Potter</title>
-`````
 
 ## Get text values directly
 `````javascript 
@@ -37,11 +37,9 @@ xpath.js is xml engine agnostic but I recommend to use it with [xmldom](https://
     var doc = new dom().parseFromString(xml)    
     var title = select(doc, "//title/text()")[0].data   
     console.log(title)
-    
+`````    
     -->
-
     Harry Potter
-`````
 
 ## Namespaces
 `````javascript  
@@ -49,11 +47,9 @@ xpath.js is xml engine agnostic but I recommend to use it with [xmldom](https://
     var doc = new dom().parseFromString(xml)    
     var node = select(doc, "//*[local-name(.)='title' and namespace-uri(.)='myns/']")[0]
     console.log(node.namespaceURI)
-
-    -->
-
-    myns
 `````
+    -->
+    myns
 	
 ## Attributes
 `````javascript  
@@ -61,8 +57,6 @@ xpath.js is xml engine agnostic but I recommend to use it with [xmldom](https://
     var doc = new dom().parseFromString(xml)    
     var author = select(doc, "/book/@author")[0].value    
     console.log(author)
-    
-    -->
-
-    J. K. Rowling
 `````
+    -->
+    J. K. Rowling
