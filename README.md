@@ -39,6 +39,7 @@ xpath.js is xml engine agnostic but I recommend to use [xmldom](https://github.c
     console.log(title)
 `````  
 -->
+    
     Harry Potter
 
 ## Namespaces
@@ -49,6 +50,7 @@ xpath.js is xml engine agnostic but I recommend to use [xmldom](https://github.c
     console.log(node.namespaceURI)
 `````
 -->
+    
     myns
 	
 ## Attributes
@@ -59,4 +61,5 @@ xpath.js is xml engine agnostic but I recommend to use [xmldom](https://github.c
     console.log(author)
 `````
 -->
+    
     J. K. Rowling
