@@ -3,14 +3,14 @@ An xpath module for node, written in pure javascript.
 
 Originally written by Cameron McCormack ([blog](http://mcc.id.au/xpathjs)). 
 
-Prepared as a node module by Yaron Naveh [blog](http://webservices20.blogspot.com/).
+Prepared as a node module by Yaron Naveh ([blog](http://webservices20.blogspot.com/)).
 
 ## Install
 Install with [npm](http://github.com/isaacs/npm):
 
     npm install xpath.js
 
-xpath.js is xml engine agnostic but I recommend to use it with [xmldom](https://github.com/jindw/xmldom):
+xpath.js is xml engine agnostic but I recommend to use [xmldom](https://github.com/jindw/xmldom):
 
     npm install xmldom
 
@@ -37,8 +37,8 @@ xpath.js is xml engine agnostic but I recommend to use it with [xmldom](https://
     var doc = new dom().parseFromString(xml)    
     var title = select(doc, "//title/text()")[0].data   
     console.log(title)
-`````    
-    -->
+`````  
+-->
     Harry Potter
 
 ## Namespaces
@@ -48,7 +48,7 @@ xpath.js is xml engine agnostic but I recommend to use it with [xmldom](https://
     var node = select(doc, "//*[local-name(.)='title' and namespace-uri(.)='myns/']")[0]
     console.log(node.namespaceURI)
 `````
-    -->
+-->
     myns
 	
 ## Attributes
@@ -58,5 +58,5 @@ xpath.js is xml engine agnostic but I recommend to use it with [xmldom](https://
     var author = select(doc, "/book/@author")[0].value    
     console.log(author)
 `````
-    -->
+-->
     J. K. Rowling
