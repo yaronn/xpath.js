@@ -1,7 +1,7 @@
 {
   "name": "xpath",
   "version": "0.0.2",
-  "description": "xpath evaluate and select.",
+  "description": "DOM 3 Xpath implemention and helper for node.js ",
   "engines": {
     "node": ">=0.6.0"
   },

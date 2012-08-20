@@ -1,5 +1,5 @@
 ## xpath.js
-An xpath module for node, written in pure javascript.
+DOM 3 Xpath implemention and helper for node.js.
 
 Originally written by Cameron McCormack ([blog](http://mcc.id.au/xpathjs)). 
 
