@@ -4287,3 +4287,17 @@ function SelectNodes(doc, xpath)
 }
 
 module.exports = SelectNodes;
+module.exports.evaluate = function(e, cn, r, t, res) {
+	if (t < 0 || t > 9) {
+		throw { code: 0, toString: function() { return "Request type not supported"; } };
+	}
+	try {
+		var expression = new XPathExpression(e, r, p);
+	} catch (e) {
+		throw new XPathException(XPathException.INVALID_EXPRESSION_ERR, e);
+	}
+	return expression(e, r, p).evaluate(cn, t, res);
+};
+module.exports.XPathParser = XPathParser;
+module.exports.XPathResult = XPathResult;
+module.exports.XPathExpression = XPathExpression;
