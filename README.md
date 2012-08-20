@@ -1,4 +1,4 @@
-## xpath.js
+## xpath
 DOM 3 Xpath implemention and helper for node.js.
 
 Originally written by Cameron McCormack ([blog](http://mcc.id.au/xpathjs)). 
@@ -35,7 +35,7 @@ xpath is xml engine agnostic but I recommend to use [xmldom](https://github.com/
 `````javascript 
     var xml = "<book><title>Harry Potter</title></book>"
     var doc = new dom().parseFromString(xml)
-    var title = xpath.select("//title/text()", doc)
+    var title = xpath.select("//title/text()", doc).toString()
     console.log(title)
 `````  
 -->
