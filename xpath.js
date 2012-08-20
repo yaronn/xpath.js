@@ -4235,73 +4235,61 @@ XPathResult.ORDERED_NODE_SNAPSHOT_TYPE = 7;
 XPathResult.ANY_UNORDERED_NODE_TYPE = 8;
 XPathResult.FIRST_ORDERED_NODE_TYPE = 9;
 
-// DOM 3 XPath support ///////////////////////////////////////////////////////
 
-function installDOM3XPathSupport(doc, p) {
-	doc.createExpression = function(e, r) {
-		try {
-			return new XPathExpression(e, r, p);
-		} catch (e) {
-			throw new XPathException(XPathException.INVALID_EXPRESSION_ERR, e);
-		}
-	};
-	doc.createNSResolver = function(n) {
-		return new NodeXPathNSResolver(n);
-	};
-	doc.evaluate = function(e, cn, r, t, res) {
-		if (t < 0 || t > 9) {
-			throw { code: 0, toString: function() { return "Request type not supported"; } };
-		}
-        return doc.createExpression(e, r, p).evaluate(cn, t, res);
-	};
-};
+// exports
 
-// ---------------------------------------------------------------------------
+var _parser = new XPathParser();
 
-// Install DOM 3 XPath support for the current document.
-try {
-	var shouldInstall = true;
-	try {
-		if (document.implementation
-				&& document.implementation.hasFeature
-				&& document.implementation.hasFeature("XPath", null)) {
-			shouldInstall = false;
-		}
-	} catch (e) {
-	}
-	if (shouldInstall) {
-		installDOM3XPathSupport(document, new XPathParser());
-	}
-} catch (e) {
-}
-
-
-function SelectNodes(doc, xpath)
-{
-	var parser = new XPathParser();
-	var xpath = parser.parse(xpath);
-	var context = new XPathContext();
-	context.expressionContextNode = doc.documentElement;
-	var res = xpath.evaluate(context)	
-	return res.toArray();	
-}
-
-var parser = new XPathParser();
-
-module.exports = SelectNodes;
 module.exports.evaluate = function(e, cn, r, t, res) {
 	if (t < 0 || t > 9) {
 		throw { code: 0, toString: function() { return "Request type not supported"; } };
 	}
 	try {
-		var expression = new XPathExpression(e, r, parser);
+		var expression = new XPathExpression(e, r, _parser);
 	} catch (e) {
 		throw new XPathException(XPathException.INVALID_EXPRESSION_ERR, e);
 	}
 	return expression.evaluate(cn, t, res);
 };
-module.exports.XPathParser = XPathParser;
+
 module.exports.XPathResult = XPathResult;
-module.exports.XPathExpression = XPathExpression;
-module.exports.Step = Step;
-module.exports.PathExpr = PathExpr;
+
+module.exports.select = function(e, doc) {
+	var expression = new XPathExpression(selector, null, _parser);
+	var parsed = expression.xpath.expression.locationPath.steps;
+	var last = parsed[parsed.length - 1];
+
+	// 以下，除了attribute和namespace外，都是element节点类型
+	// ANCESTOR = 0;
+	// ANCESTORORSELF = 1;
+	// ATTRIBUTE = 2;
+	// CHILD = 3;
+	// DESCENDANT = 4;
+	// DESCENDANTORSELF = 5;
+	// FOLLOWING = 6;
+	// FOLLOWINGSIBLING = 7;
+	// NAMESPACE = 8;
+	// PARENT = 9;
+	// PRECEDING = 10;
+	// PRECEDINGSIBLING = 11;
+	// SELF = 12;
+
+	// @attr
+	if (last.axis === Step.ATTRIBUTE) {
+		result = expression.evaluate(doc, XPathResult.STRING_TYPE, null).stringValue;
+	}
+	// namespace()
+	else if (last.axis === Step.NAMESPACE) {
+		// TODO
+	}
+	else {
+		result = expression.evaluate(doc, XPathResult.ANY_TYPE, null).nodes;
+		// nodes[1]
+		last.predicates.forEach(function(predicate) {
+			if ((predicate instanceof PathExpr) && predicate.filter.num) {
+				result = result[0];
+			}
+		});
+	}
+	return result;
+};
