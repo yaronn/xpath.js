@@ -4286,13 +4286,15 @@ function SelectNodes(doc, xpath)
 	return res.toArray();	
 }
 
+var parser = new XPathParser();
+
 module.exports = SelectNodes;
 module.exports.evaluate = function(e, cn, r, t, res) {
 	if (t < 0 || t > 9) {
 		throw { code: 0, toString: function() { return "Request type not supported"; } };
 	}
 	try {
-		var expression = new XPathExpression(e, r, p);
+		var expression = new XPathExpression(e, r, parser);
 	} catch (e) {
 		throw new XPathException(XPathException.INVALID_EXPRESSION_ERR, e);
 	}
@@ -4301,3 +4303,4 @@ module.exports.evaluate = function(e, cn, r, t, res) {
 module.exports.XPathParser = XPathParser;
 module.exports.XPathResult = XPathResult;
 module.exports.XPathExpression = XPathExpression;
+module.exports.Step = Step;
