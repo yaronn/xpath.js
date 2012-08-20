@@ -4298,9 +4298,10 @@ module.exports.evaluate = function(e, cn, r, t, res) {
 	} catch (e) {
 		throw new XPathException(XPathException.INVALID_EXPRESSION_ERR, e);
 	}
-	return expression(e, r, p).evaluate(cn, t, res);
+	return expression.evaluate(cn, t, res);
 };
 module.exports.XPathParser = XPathParser;
 module.exports.XPathResult = XPathResult;
 module.exports.XPathExpression = XPathExpression;
 module.exports.Step = Step;
+module.exports.PathExpr = PathExpr;
