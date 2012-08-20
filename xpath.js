@@ -20,7 +20,7 @@
  * Revision 19: November 29, 2005
  *   Nodesets now store their nodes in a height balanced tree, increasing
  *   performance for the common case of selecting nodes in document order,
- *   thanks to Sébastien Cramatte <contact (at) zeninteractif.com>.
+ *   thanks to S閎astien Cramatte <contact (at) zeninteractif.com>.
  *   AVL tree code adapted from Raimund Neumann <rnova (at) gmx.net>.
  *
  * Revision 18: October 27, 2005
@@ -32,7 +32,7 @@
  * Revision 17: October 25, 2005
  *   Some core XPath function fixes and a patch to avoid crashing certain
  *   versions of MSXML in PathExpr.prototype.getOwnerElement, thanks to
- *   Sébastien Cramatte <contact (at) zeninteractif.com>.
+ *   S閎astien Cramatte <contact (at) zeninteractif.com>.
  *
  * Revision 16: September 22, 2005
  *   Workarounds for some IE 5.5 deficiencies.
@@ -4235,31 +4235,60 @@ XPathResult.ORDERED_NODE_SNAPSHOT_TYPE = 7;
 XPathResult.ANY_UNORDERED_NODE_TYPE = 8;
 XPathResult.FIRST_ORDERED_NODE_TYPE = 9;
 
+// DOM 3 XPath support ///////////////////////////////////////////////////////
 
-// exports
-
-var _parser = new XPathParser();
-
-module.exports.evaluate = function(e, cn, r, t, res) {
-	if (t < 0 || t > 9) {
-		throw { code: 0, toString: function() { return "Request type not supported"; } };
-	}
-	try {
-		var expression = new XPathExpression(e, r, _parser);
-	} catch (e) {
-		throw new XPathException(XPathException.INVALID_EXPRESSION_ERR, e);
-	}
-	return expression.evaluate(cn, t, res);
+function installDOM3XPathSupport(doc, p) {
+	doc.createExpression = function(e, r) {
+		try {
+			return new XPathExpression(e, r, p);
+		} catch (e) {
+			throw new XPathException(XPathException.INVALID_EXPRESSION_ERR, e);
+		}
+	};
+	doc.createNSResolver = function(n) {
+		return new NodeXPathNSResolver(n);
+	};
+	doc.evaluate = function(e, cn, r, t, res) {
+		if (t < 0 || t > 9) {
+			throw { code: 0, toString: function() { return "Request type not supported"; } };
+		}
+        return doc.createExpression(e, r, p).evaluate(cn, t, res);
+	};
 };
 
-module.exports.XPathResult = XPathResult;
+// ---------------------------------------------------------------------------
 
-module.exports.select = function(e, doc) {
+// Install DOM 3 XPath support for the current document.
+try {
+	var shouldInstall = true;
+	try {
+		if (document.implementation
+				&& document.implementation.hasFeature
+				&& document.implementation.hasFeature("XPath", null)) {
+			shouldInstall = false;
+		}
+	} catch (e) {
+	}
+	if (shouldInstall) {
+		installDOM3XPathSupport(document, new XPathParser());
+	}
+} catch (e) {
+}
+
+// ---------------------------------------------------------------------------
+// exports for node.js
+
+installDOM3XPathSupport(exports, new XPathParser());
+
+exports.XPathResult = XPathResult;
+
+// helper
+exports.select = function(e, doc) {
 	var expression = new XPathExpression(e, null, _parser);
 	var parsed = expression.xpath.expression.locationPath.steps;
 	var last = parsed[parsed.length - 1];
 
-	// 以下，除了attribute和namespace外，都是element节点类型
+	// all node except attribute and namespace
 	// ANCESTOR = 0;
 	// ANCESTORORSELF = 1;
 	// ATTRIBUTE = 2;
