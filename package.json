@@ -1,7 +1,7 @@
 {
   "name": "xpath",
-  "version": "0.0.2",
-  "description": "DOM 3 Xpath implemention and helper for node.js ",
+  "version": "0.0.3",
+  "description": "DOM 3 Xpath implemention and helper for node.js.",
   "engines": {
     "node": ">=0.6.0"
   },
@@ -9,6 +9,9 @@
     "name": "goto100"
   },
   "dependencies": {},
+  "devDependencies": {
+	  "nodeunit": ">=0.6.4",
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/goto100/xpath.git"
