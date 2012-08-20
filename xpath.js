@@ -4255,7 +4255,7 @@ module.exports.evaluate = function(e, cn, r, t, res) {
 module.exports.XPathResult = XPathResult;
 
 module.exports.select = function(e, doc) {
-	var expression = new XPathExpression(selector, null, _parser);
+	var expression = new XPathExpression(e, null, _parser);
 	var parsed = expression.xpath.expression.locationPath.steps;
 	var last = parsed[parsed.length - 1];
 
