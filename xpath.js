@@ -4283,42 +4283,31 @@ installDOM3XPathSupport(exports, new XPathParser());
 exports.XPathResult = XPathResult;
 
 // helper
-exports.select = function(e, doc) {
-	var expression = new XPathExpression(e, null, _parser);
-	var parsed = expression.xpath.expression.locationPath.steps;
-	var last = parsed[parsed.length - 1];
+exports.select = function(e, doc, single) {
+	var expression = new XPathExpression(e, null, new XPathParser());
+	var type = XPathResult.ANY_TYPE;
 
-	// all node except attribute and namespace
-	// ANCESTOR = 0;
-	// ANCESTORORSELF = 1;
-	// ATTRIBUTE = 2;
-	// CHILD = 3;
-	// DESCENDANT = 4;
-	// DESCENDANTORSELF = 5;
-	// FOLLOWING = 6;
-	// FOLLOWINGSIBLING = 7;
-	// NAMESPACE = 8;
-	// PARENT = 9;
-	// PRECEDING = 10;
-	// PRECEDINGSIBLING = 11;
-	// SELF = 12;
+	var result = expression.evaluate(doc, type, null);
 
-	// @attr
-	if (last.axis === Step.ATTRIBUTE) {
-		result = expression.evaluate(doc, XPathResult.STRING_TYPE, null).stringValue;
+	if (result.resultType == XPathResult.STRING_TYPE) {
+		result = result.stringValue;
 	}
-	// namespace()
-	else if (last.axis === Step.NAMESPACE) {
-		// TODO
+	else if (result.resultType == XPathResult.NUMBER_TYPE) {
+		result = result.numberValue;
+	}
+	else if (result.resultType == XPathResult.BOOLEAN_TYPE) {
+		result = result.booleanValue;
 	}
 	else {
-		result = expression.evaluate(doc, XPathResult.ANY_TYPE, null).nodes;
-		// nodes[1]
-		last.predicates.forEach(function(predicate) {
-			if ((predicate instanceof PathExpr) && predicate.filter.num) {
-				result = result[0];
-			}
-		});
+		result = result.nodes;
+		if (single) {
+			result = result[0];
+		}
 	}
+
 	return result;
+};
+
+exports.select1 = function(e, doc) {
+	return exports.select(e, doc, true);
 };

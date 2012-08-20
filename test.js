@@ -1,41 +1,81 @@
-var select = require('./xpath.js')
-  , dom = require('xmldom').DOMParser
-  , assert = require('assert')
- 
-module.exports = {
+var xpath = require('./xpath.js')
+, dom = require('xmldom').DOMParser
+, assert = require('assert')
 
-  "get simple xpath": function (test) {   
-    var xml = "<book><title>Harry Potter</title></book>"
-    var doc = new dom().parseFromString(xml)    
-    var nodes = select(doc, "//title")
-    assert.equal("title", nodes[0].localName)
-    assert.equal("Harry Potter", nodes[0].firstChild.data) //first child is the text() node
-    assert.equal("<title>Harry Potter</title>", nodes[0].toString())
-    test.done()
+module.exports = {
+	'api': function(test) {
+		assert.ok(xpath.evaluate, 'evaluate api ok.');
+		assert.ok(xpath.select, 'select api ok.');
+		test.done();
 	},
 
-  "get text node": function (test) {   
-    var xml = "<book><title>Harry Potter</title></book>"
-    var doc = new dom().parseFromString(xml)    
-    var title = select(doc, "//title/text()")[0].data    
-    assert.equal("Harry Potter", title)
-    test.done()
-  },
+	'evaluate': function(test) {
+		var xml = '<book><title>Harry Potter</title></book>';
+		var doc = new dom().parseFromString(xml);
+		var nodes = xpath.evaluate('//title', doc, null, xpath.XPathResult.ANY_TYPE, null).nodes;
+		assert.equal('title', nodes[0].localName);
+		assert.equal('Harry Potter', nodes[0].firstChild.data);
+		assert.equal('<title>Harry Potter</title>', nodes[0].toString());
+		test.done();
+	},
 
-  "get xpath with namespaces": function (test) {   
-    var xml = "<book><title xmlns='myns'>Harry Potter</title></book>"
-    var doc = new dom().parseFromString(xml)    
-    var nodes = select(doc, "//*[local-name(.)='title' and namespace-uri(.)='myns']")
-    assert.equal("title", nodes[0].localName)
-    assert.equal("myns", nodes[0].namespaceURI)    
-    test.done()
-  },
+	'select': function(test) {
+		var xml = '<book><title>Harry Potter</title></book>';
+		var doc = new dom().parseFromString(xml);
+		var nodes = xpath.select('//title', doc);
+		assert.equal('title', nodes[0].localName);
+		assert.equal('Harry Potter', nodes[0].firstChild.data);
+		assert.equal('<title>Harry Potter</title>', nodes[0].toString());
+		test.done();
+	},
 
-  "get attribute": function (test) {   
-    var xml = "<book author='J. K. Rowling'><title>Harry Potter</title></book>"
-    var doc = new dom().parseFromString(xml)    
-    var author = select(doc, "/book/@author")[0].value
-    assert.equal("J. K. Rowling", author) 
-    test.done()
-  },
+	'select single node': function(test) {
+		var xml = '<book><title>Harry Potter</title></book>';
+		var doc = new dom().parseFromString(xml);
+
+		assert.equal('title', xpath.select('//title[1]', doc)[0].localName);
+
+		test.done();
+	},
+
+	'select text node': function (test) {
+		var xml = '<book xmlns="test"><title>Harry</title><title>Potter</title></book>';
+		var doc = new dom().parseFromString(xml);
+
+		assert.deepEqual('book', xpath.select('local-name(/book)', doc));
+		assert.deepEqual('test', xpath.select('namespace-uri(/book)', doc));
+		assert.deepEqual('Harry,Potter', xpath.select('//title/text()', doc).toString());
+
+		test.done();
+	},
+
+	'select number node': function(test) {
+		var xml = '<book xmlns="test"><title>Harry</title><title>Potter</title></book>';
+		var doc = new dom().parseFromString(xml);
+
+		assert.deepEqual(2, xpath.select('count(//title)', doc));
+
+		test.done();
+	},
+
+	'select xpath with namespaces': function (test) {
+		var xml = '<book><title xmlns="myns">Harry Potter</title></book>';
+		var doc = new dom().parseFromString(xml);
+
+		var nodes = xpath.select('//*[local-name(.)="title" and namespace-uri(.)="myns"]', doc);
+		assert.equal('title', nodes[0].localName);
+		assert.equal('myns', nodes[0].namespaceURI) ;   
+
+		test.done();
+	},
+
+	'select attribute': function (test) {
+		var xml = '<author name="J. K. Rowling"></author>';
+		var doc = new dom().parseFromString(xml);
+
+		var author = xpath.select1('/author/@name', doc).value;
+		assert.equal('J. K. Rowling', author);
+
+		test.done();
+	}
 }
