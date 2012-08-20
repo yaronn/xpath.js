@@ -3,26 +3,26 @@ DOM 3 Xpath implemention and helper for node.js.
 
 Originally written by Cameron McCormack ([blog](http://mcc.id.au/xpathjs)). 
 
-Prepared as a node module by Yaron Naveh ([blog](http://webservices20.blogspot.com/)).
+Thanks to Yaron Naveh ([blog](http://webservices20.blogspot.com/)).
 
 ## Install
 Install with [npm](http://github.com/isaacs/npm):
 
-    npm install xpath.js
+    npm install xpath
 
-xpath.js is xml engine agnostic but I recommend to use [xmldom](https://github.com/jindw/xmldom):
+xpath is xml engine agnostic but I recommend to use [xmldom](https://github.com/jindw/xmldom):
 
     npm install xmldom
 
 
 ## Your first xpath:
 `````javascript
-	var select = require('xpath.js')
+	var xpath = require('xpath')
 	  , dom = require('xmldom').DOMParser
 
 	var xml = "<book><title>Harry Potter</title></book>"
 	var doc = new dom().parseFromString(xml)    
-	var nodes = select(doc, "//title")
+	var nodes = xpath.select("//title", doc)
 	console.log(nodes[0].localName + ": " + nodes[0].firstChild.data)
 	console.log("node: " + nodes[0].toString())
 `````
@@ -34,8 +34,8 @@ xpath.js is xml engine agnostic but I recommend to use [xmldom](https://github.c
 ## Get text values directly
 `````javascript 
     var xml = "<book><title>Harry Potter</title></book>"
-    var doc = new dom().parseFromString(xml)    
-    var title = select(doc, "//title/text()")[0].data   
+    var doc = new dom().parseFromString(xml)
+    var title = xpath.select("//title/text()", doc)
     console.log(title)
 `````  
 -->
@@ -46,7 +46,7 @@ xpath.js is xml engine agnostic but I recommend to use [xmldom](https://github.c
 `````javascript  
 	var xml = "<book><title xmlns='myns'>Harry Potter</title></book>"
     var doc = new dom().parseFromString(xml)    
-    var node = select(doc, "//*[local-name(.)='title' and namespace-uri(.)='myns/']")[0]
+    var node = xpath.select("//*[local-name(.)='title' and namespace-uri(.)='myns/']", doc)[0]
     console.log(node.namespaceURI)
 `````
 -->
@@ -56,10 +56,10 @@ xpath.js is xml engine agnostic but I recommend to use [xmldom](https://github.c
 ## Attributes
 `````javascript  
     var xml = "<book author='J. K. Rowling'><title>Harry Potter</title></book>"
-    var doc = new dom().parseFromString(xml)    
-    var author = select(doc, "/book/@author")[0].value    
+    var doc = new dom().parseFromString(xml)
+    var author = xpath.select1(doc, "/book/@author").value
     console.log(author)
 `````
 -->
-    
+
     J. K. Rowling
