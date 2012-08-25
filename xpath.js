@@ -1,4 +1,4 @@
-/*
+﻿/*
  * xpath.js
  *
  * An XPath 1.0 library for JavaScript.
@@ -4278,12 +4278,17 @@ try {
 
 function SelectNodes(doc, xpath)
 {
-	var parser = new XPathParser();
-	var xpath = parser.parse(xpath);
-	var context = new XPathContext();
-	context.expressionContextNode = doc.documentElement;
-	var res = xpath.evaluate(context)	
-	return res.toArray();	
+  var parser = new XPathParser();
+  var xpath = parser.parse(xpath);
+  var context = new XPathContext();
+  if(doc.documentElement){
+    context.expressionContextNode = doc.documentElement;
+  } else {
+    context.expressionContextNode = doc;
+  }
+  var res = xpath.evaluate(context)
+
+  return res.toArray();
 }
 
 module.exports = SelectNodes;
