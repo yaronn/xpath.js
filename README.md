@@ -3,7 +3,7 @@ An xpath module for node, written in pure javascript.
 
 Originally written by Cameron McCormack ([blog](http://mcc.id.au/xpathjs)). 
 
-Prepared as a node module by Yaron Naveh ([blog](http://webservices20.blogspot.com/)).
+Prepared as a node module by Yaron Naveh ([blog](http://webservices20.blogspot.com/), [twitter](https://twitter.com/YaronNaveh)).
 
 ## Install
 Install with [npm](http://github.com/isaacs/npm):
