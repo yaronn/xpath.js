@@ -63,3 +63,7 @@ xpath.js is xml engine agnostic but I recommend to use [xmldom](https://github.c
 -->
     
     J. K. Rowling
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/yaronn/xpath.js/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
