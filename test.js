@@ -1,6 +1,6 @@
 var xpath = require('./xpath.js')
 , dom = require('xmldom').DOMParser
-, assert = require('assert')
+, assert = require('assert');
 
 module.exports = {
 	'api': function(test) {
@@ -68,6 +68,27 @@ module.exports = {
 
 		test.done();
 	},
+
+	'select xpath with namespaces, using a resolver': function (test) {
+		var xml = '<book xmlns:testns="http://example.com/test"><testns:title>Harry Potter</testns:title><testns:field testns:type="author">JKR</testns:field></book>';
+		var doc = new dom().parseFromString(xml);
+		
+		var resolver = {
+			mappings: {
+				'testns': 'http://example.com/test'
+			},
+			lookupNamespaceURI: function(prefix) {
+				return this.mappings[prefix];
+			}
+		}
+
+		var nodes = xpath.selectWithResolver('//testns:title/text()', doc, resolver);
+		assert.equal('Harry Potter', xpath.selectWithResolver('//testns:title/text()', doc, resolver)[0].nodeValue);
+		assert.equal('JKR', xpath.selectWithResolver('//testns:field[@testns:type="author"]/text()', doc, resolver)[0].nodeValue);
+
+		test.done();
+	},
+
 
 	'select attribute': function (test) {
 		var xml = '<author name="J. K. Rowling"></author>';

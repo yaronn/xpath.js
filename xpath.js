@@ -4284,7 +4284,11 @@ exports.XPathResult = XPathResult;
 
 // helper
 exports.select = function(e, doc, single) {
-	var expression = new XPathExpression(e, null, new XPathParser());
+	return exports.selectWithResolver(e, doc, null, single);
+};
+
+exports.selectWithResolver = function(e, doc, resolver, single) {
+	var expression = new XPathExpression(e, resolver, new XPathParser());
 	var type = XPathResult.ANY_TYPE;
 
 	var result = expression.evaluate(doc, type, null);
@@ -4306,7 +4310,7 @@ exports.select = function(e, doc, single) {
 	}
 
 	return result;
-};
+}
 
 exports.select1 = function(e, doc) {
 	return exports.select(e, doc, true);
