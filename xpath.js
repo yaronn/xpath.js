@@ -4287,6 +4287,19 @@ exports.select = function(e, doc, single) {
 	return exports.selectWithResolver(e, doc, null, single);
 };
 
+exports.useNamespaces = function(mappings) {
+	var resolver = {
+		mappings: mappings || {},
+		lookupNamespaceURI: function(prefix) {
+			return this.mappings[prefix];
+		}
+	}
+
+	return function(e, doc, single) {
+		return exports.selectWithResolver(e, doc, resolver, single);
+	};
+}
+
 exports.selectWithResolver = function(e, doc, resolver, single) {
 	var expression = new XPathExpression(e, resolver, new XPathParser());
 	var type = XPathResult.ANY_TYPE;

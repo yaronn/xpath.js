@@ -89,6 +89,17 @@ module.exports = {
 		test.done();
 	},
 
+	'select xpath with namespaces, using namespace mappings': function (test) {
+		var xml = '<book xmlns:testns="http://example.com/test"><testns:title>Harry Potter</testns:title><testns:field testns:type="author">JKR</testns:field></book>';
+		var doc = new dom().parseFromString(xml);
+		var select = xpath.useNamespaces({'testns': 'http://example.com/test'});
+
+		assert.equal('Harry Potter', select('//testns:title/text()', doc)[0].nodeValue);
+		assert.equal('JKR', select('//testns:field[@testns:type="author"]/text()', doc)[0].nodeValue);
+
+		test.done();
+	},
+
 
 	'select attribute': function (test) {
 		var xml = '<author name="J. K. Rowling"></author>';
