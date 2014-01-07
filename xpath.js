@@ -4298,7 +4298,7 @@ exports.useNamespaces = function(mappings) {
 	return function(e, doc, single) {
 		return exports.selectWithResolver(e, doc, resolver, single);
 	};
-}
+};
 
 exports.selectWithResolver = function(e, doc, resolver, single) {
 	var expression = new XPathExpression(e, resolver, new XPathParser());
@@ -4323,7 +4323,7 @@ exports.selectWithResolver = function(e, doc, resolver, single) {
 	}
 
 	return result;
-}
+};
 
 exports.select1 = function(e, doc) {
 	return exports.select(e, doc, true);
