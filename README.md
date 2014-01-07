@@ -55,9 +55,8 @@ xpath is xml engine agnostic but I recommend to use [xmldom](https://github.com/
 
 ## Namespaces with easy mappings
 `````javascript  
-    var xml = "<book xmlns:bookml="http://example.com/book"><bookml:title>Harry Potter</bookml:title></book>"
-    var select = xpath.useNamespaces({'bookml': 'http://example.com/book'});
-
+    var xml = "<book xmlns:bookml='http://example.com/book'><bookml:title>Harry Potter</bookml:title></book>"
+    var select = xpath.useNamespaces({"bookml": "http://example.com/book"});
     console.log(select('//bookml:title/text()', doc)[0].nodeValue)); 
 `````
 -->
