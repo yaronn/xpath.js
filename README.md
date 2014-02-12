@@ -44,7 +44,7 @@ xpath is xml engine agnostic but I recommend to use [xmldom](https://github.com/
 
 ## Namespaces
 `````javascript  
-	var xml = "<book><title xmlns='myns'>Harry Potter</title></book>"
+    var xml = "<book><title xmlns='myns'>Harry Potter</title></book>"
     var doc = new dom().parseFromString(xml)    
     var node = xpath.select("//*[local-name(.)='title' and namespace-uri(.)='myns/']", doc)[0]
     console.log(node.namespaceURI)
@@ -52,7 +52,17 @@ xpath is xml engine agnostic but I recommend to use [xmldom](https://github.com/
 -->
     
     myns
-	
+
+## Namespaces with easy mappings
+`````javascript  
+    var xml = "<book xmlns:bookml='http://example.com/book'><bookml:title>Harry Potter</bookml:title></book>"
+    var select = xpath.useNamespaces({"bookml": "http://example.com/book"});
+    console.log(select('//bookml:title/text()', doc)[0].nodeValue)); 
+`````
+-->
+    
+    Harry Potter
+
 ## Attributes
 `````javascript  
     var xml = "<book author='J. K. Rowling'><title>Harry Potter</title></book>"
