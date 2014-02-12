@@ -67,7 +67,7 @@ xpath is xml engine agnostic but I recommend to use [xmldom](https://github.com/
 `````javascript  
     var xml = "<book author='J. K. Rowling'><title>Harry Potter</title></book>"
     var doc = new dom().parseFromString(xml)
-    var author = xpath.select1(doc, "/book/@author").value
+    var author = xpath.select1("/book/@author", doc).value
     console.log(author)
 `````
 -->
