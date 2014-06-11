@@ -3274,7 +3274,7 @@ NamespaceResolver.prototype.getNamespace = function(prefix, n) {
 
 // Functions /////////////////////////////////////////////////////////////////
 
-Functions = new Object();
+var Functions = new Object();
 
 Functions.last = function() {
 	var c = arguments[0];
@@ -3645,7 +3645,7 @@ Functions.round = function() {
 
 // Utilities /////////////////////////////////////////////////////////////////
 
-Utilities = new Object();
+var Utilities = new Object();
 
 Utilities.splitQName = function(qn) {
 	var i = qn.indexOf(":");
