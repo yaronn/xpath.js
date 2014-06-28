@@ -4283,7 +4283,7 @@ try {
 
 // ---------------------------------------------------------------------------
 // exports for node.js
-	
+
 installDOM3XPathSupport(exports, new XPathParser());
 
 exports.XPathResult = XPathResult;
