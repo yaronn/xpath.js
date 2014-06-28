@@ -102,7 +102,7 @@
  */
 
 // non-node wrapper
-if(typeof exports == 'undefined' ) {
+if(typeof exports === 'undefined' ) {
 	xpath = {};
 }
 (function(exports) {
@@ -4284,56 +4284,56 @@ try {
 // ---------------------------------------------------------------------------
 // exports for node.js
 	
-	installDOM3XPathSupport(exports, new XPathParser());
-	
-	exports.XPathResult = XPathResult;
-	
-	// helper
-	exports.select = function(e, doc, single) {
-		return exports.selectWithResolver(e, doc, null, single);
-	};
-	
-	exports.useNamespaces = function(mappings) {
-		var resolver = {
-			mappings: mappings || {},
-			lookupNamespaceURI: function(prefix) {
-				return this.mappings[prefix];
-			}
-		};
-	
-		return function(e, doc, single) {
-			return exports.selectWithResolver(e, doc, resolver, single);
-		};
-	};
-	
-	exports.selectWithResolver = function(e, doc, resolver, single) {
-		var expression = new XPathExpression(e, resolver, new XPathParser());
-		var type = XPathResult.ANY_TYPE;
-	
-		var result = expression.evaluate(doc, type, null);
-	
-		if (result.resultType == XPathResult.STRING_TYPE) {
-			result = result.stringValue;
+installDOM3XPathSupport(exports, new XPathParser());
+
+exports.XPathResult = XPathResult;
+
+// helper
+exports.select = function(e, doc, single) {
+	return exports.selectWithResolver(e, doc, null, single);
+};
+
+exports.useNamespaces = function(mappings) {
+	var resolver = {
+		mappings: mappings || {},
+		lookupNamespaceURI: function(prefix) {
+			return this.mappings[prefix];
 		}
-		else if (result.resultType == XPathResult.NUMBER_TYPE) {
-			result = result.numberValue;
-		}
-		else if (result.resultType == XPathResult.BOOLEAN_TYPE) {
-			result = result.booleanValue;
-		}
-		else {
-			result = result.nodes;
-			if (single) {
-				result = result[0];
-			}
-		}
-	
-		return result;
 	};
-	
-	exports.select1 = function(e, doc) {
-		return exports.select(e, doc, true);
+
+	return function(e, doc, single) {
+		return exports.selectWithResolver(e, doc, resolver, single);
 	};
+};
+
+exports.selectWithResolver = function(e, doc, resolver, single) {
+	var expression = new XPathExpression(e, resolver, new XPathParser());
+	var type = XPathResult.ANY_TYPE;
+
+	var result = expression.evaluate(doc, type, null);
+
+	if (result.resultType == XPathResult.STRING_TYPE) {
+		result = result.stringValue;
+	}
+	else if (result.resultType == XPathResult.NUMBER_TYPE) {
+		result = result.numberValue;
+	}
+	else if (result.resultType == XPathResult.BOOLEAN_TYPE) {
+		result = result.booleanValue;
+	}
+	else {
+		result = result.nodes;
+		if (single) {
+			result = result[0];
+		}
+	}
+
+	return result;
+};
+
+exports.select1 = function(e, doc) {
+	return exports.select(e, doc, true);
+};
 
 // end non-node wrapper
 })(typeof exports !== 'undefined' ? exports : xpath);
