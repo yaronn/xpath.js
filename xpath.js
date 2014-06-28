@@ -101,6 +101,12 @@
  * Initial version: June 14, 2004
  */
 
+// non-node wrapper
+if(typeof exports == 'undefined' ) {
+	xpath = {};
+}
+(function(exports) {
+	
 // XPathParser ///////////////////////////////////////////////////////////////
 
 XPathParser.prototype = new Object();
@@ -4277,12 +4283,6 @@ try {
 
 // ---------------------------------------------------------------------------
 // exports for node.js
-
-// non-node wrapper
-if(typeof exports == 'undefined' ) {
-	xpath = {};
-}
-(function(exports) {
 	
 	installDOM3XPathSupport(exports, new XPathParser());
 	
