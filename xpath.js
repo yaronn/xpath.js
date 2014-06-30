@@ -101,6 +101,12 @@
  * Initial version: June 14, 2004
  */
 
+// non-node wrapper
+if(typeof exports === 'undefined' ) {
+	xpath = {};
+}
+(function(exports) {
+	
 // XPathParser ///////////////////////////////////////////////////////////////
 
 XPathParser.prototype = new Object();
@@ -4293,7 +4299,7 @@ exports.useNamespaces = function(mappings) {
 		lookupNamespaceURI: function(prefix) {
 			return this.mappings[prefix];
 		}
-	}
+	};
 
 	return function(e, doc, single) {
 		return exports.selectWithResolver(e, doc, resolver, single);
@@ -4328,3 +4334,6 @@ exports.selectWithResolver = function(e, doc, resolver, single) {
 exports.select1 = function(e, doc) {
 	return exports.select(e, doc, true);
 };
+
+// end non-node wrapper
+})(typeof exports !== 'undefined' ? exports : xpath);
