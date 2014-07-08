@@ -39,18 +39,17 @@ module.exports = {
 	},
 
 	'select text node': function (test) {
-		var xml = '<book xmlns="test"><title>Harry</title><title>Potter</title></book>';
+		var xml = '<book><title>Harry</title><title>Potter</title></book>';
 		var doc = new dom().parseFromString(xml);
 
 		assert.deepEqual('book', xpath.select('local-name(/book)', doc));
-		assert.deepEqual('test', xpath.select('namespace-uri(/book)', doc));
 		assert.deepEqual('Harry,Potter', xpath.select('//title/text()', doc).toString());
 
 		test.done();
 	},
 
 	'select number node': function(test) {
-		var xml = '<book xmlns="test"><title>Harry</title><title>Potter</title></book>';
+		var xml = '<book><title>Harry</title><title>Potter</title></book>';
 		var doc = new dom().parseFromString(xml);
 
 		assert.deepEqual(2, xpath.select('count(//title)', doc));
@@ -64,7 +63,7 @@ module.exports = {
 
 		var nodes = xpath.select('//*[local-name(.)="title" and namespace-uri(.)="myns"]', doc);
 		assert.equal('title', nodes[0].localName);
-		assert.equal('myns', nodes[0].namespaceURI) ;   
+		assert.equal('myns', nodes[0].namespaceURI) ;
 
 		test.done();
 	},
@@ -72,7 +71,7 @@ module.exports = {
 	'select xpath with namespaces, using a resolver': function (test) {
 		var xml = '<book xmlns:testns="http://example.com/test"><testns:title>Harry Potter</testns:title><testns:field testns:type="author">JKR</testns:field></book>';
 		var doc = new dom().parseFromString(xml);
-		
+
 		var resolver = {
 			mappings: {
 				'testns': 'http://example.com/test'
@@ -85,6 +84,46 @@ module.exports = {
 		var nodes = xpath.selectWithResolver('//testns:title/text()', doc, resolver);
 		assert.equal('Harry Potter', xpath.selectWithResolver('//testns:title/text()', doc, resolver)[0].nodeValue);
 		assert.equal('JKR', xpath.selectWithResolver('//testns:field[@testns:type="author"]/text()', doc, resolver)[0].nodeValue);
+
+		test.done();
+	},
+
+	'select xpath with default namespace, using a resolver': function (test) {
+		var xml = '<book xmlns="http://example.com/test"><title>Harry Potter</title><field type="author">JKR</field></book>';
+		var doc = new dom().parseFromString(xml);
+
+		var resolver = {
+			mappings: {
+				'testns': 'http://example.com/test'
+			},
+			lookupNamespaceURI: function(prefix) {
+				return this.mappings[prefix];
+			}
+		}
+
+		var nodes = xpath.selectWithResolver('//testns:title/text()', doc, resolver);
+		assert.equal('Harry Potter', xpath.selectWithResolver('//testns:title/text()', doc, resolver)[0].nodeValue);
+		assert.equal('JKR', xpath.selectWithResolver('//testns:field[@type="author"]/text()', doc, resolver)[0].nodeValue);
+
+		test.done();
+	},
+
+	'select xpath with namespaces, prefixes different in xml and xpath, using a resolver': function (test) {
+		var xml = '<book xmlns:testns="http://example.com/test"><testns:title>Harry Potter</testns:title><testns:field testns:type="author">JKR</testns:field></book>';
+		var doc = new dom().parseFromString(xml);
+
+		var resolver = {
+			mappings: {
+				'ns': 'http://example.com/test'
+			},
+			lookupNamespaceURI: function(prefix) {
+				return this.mappings[prefix];
+			}
+		}
+
+		var nodes = xpath.selectWithResolver('//ns:title/text()', doc, resolver);
+		assert.equal('Harry Potter', xpath.selectWithResolver('//ns:title/text()', doc, resolver)[0].nodeValue);
+		assert.equal('JKR', xpath.selectWithResolver('//ns:field[@ns:type="author"]/text()', doc, resolver)[0].nodeValue);
 
 		test.done();
 	},
