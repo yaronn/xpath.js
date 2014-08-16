@@ -15,6 +15,9 @@
         "url":"https://github.com/yaronn/xpath.js.git" },
     "main": "./xpath.js",
     "directories": { },
+    "scripts":    {
+        "test": "nodeunit test.js"
+    },
     "keywords": ["xpath", "xml"],
     "licenses": [{ 
         "type" :  "MIT License",
