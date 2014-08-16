@@ -1,6 +1,6 @@
 {
     "name": "xpath.js",
-    "version": "0.0.4",
+    "version": "1.0.4",
     "description": "Xpath pure javascript implementation for node.js",
     "engines": { "node": ">=0.4.0" },
     "author": "Cameron McCormack (http://mcc.id.au/xpathjs), Yaron Naveh (yaronn01@gmail.com, http://webservices20.blogspot.com/)",

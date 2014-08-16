@@ -38,4 +38,26 @@ module.exports = {
     assert.equal("J. K. Rowling", author) 
     test.done()
   },
+
+
+  "last() function": function (test) {   
+    var xml = "<root><x><y id='1' /><p /><y id='2' /><z /></x><y id='3'/></root>"
+    var doc = new dom().parseFromString(xml)    
+    var res = select(doc, "//y[last()]")    
+    assert.equal(2, res.length) 
+    assert.equal("2", res[0].getAttribute("id"))
+    assert.equal("3", res[1].getAttribute("id"))
+    test.done()
+  },
+
+
+  "last() function with parentheses": function (test) {   
+    var xml = "<root><x><y id='1' /><y id='2' /><z /></x><y id='3'/></root>"
+    var doc = new dom().parseFromString(xml)    
+    var res = select(doc, "(//y)[last()]")
+    assert.equal(1, res.length)    
+    assert.equal("3", res[0].getAttribute("id"))
+    test.done()
+  },
+  
 }

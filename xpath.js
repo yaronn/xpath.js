@@ -1712,6 +1712,7 @@ PathExpr.prototype.evaluate = function(c) {
 		for (var i = 0; i < this.locationPath.steps.length; i++) {
 			var step = this.locationPath.steps[i];
 			var newNodes = [];
+			var newLocalContext = [];
 			for (var j = 0; j < nodes.length; j++) {
 				xpc.contextNode = nodes[j];
 				switch (step.axis) {
@@ -1764,11 +1765,22 @@ PathExpr.prototype.evaluate = function(c) {
 
 					case Step.CHILD:
 						// look at all child elements
-						for (var m = xpc.contextNode.firstChild; m != null; m = m.nextSibling) {
+						var pos = 0
+						var tmpContext = []						
+						for (var m = xpc.contextNode.firstChild; m != null; m = m.nextSibling) {							
 							if (step.nodeTest.matches(m, xpc)) {
 								newNodes.push(m);
+								//keep track of the element position between other matching siblings
+								tmpContext.push({contextPosition: ++pos});								
 							}
-						}
+						}	
+
+						for (var k=0; k<tmpContext.length; k++) {
+							//track size of matching siblings
+							tmpContext[k].contextSize = pos
+							newLocalContext.push(tmpContext[k])
+						}					
+
 						break;
 
 					case Step.DESCENDANT:
@@ -1942,31 +1954,50 @@ PathExpr.prototype.evaluate = function(c) {
 				}
 			}
 			nodes = newNodes;
-			// apply each of the predicates in turn
+			// apply each of the predicates in turn			
 			for (var j = 0; j < step.predicates.length; j++) {
 				var pred = step.predicates[j];
 				var newNodes = [];
 				xpc.contextSize = nodes.length;
 				for (xpc.contextPosition = 1; xpc.contextPosition <= xpc.contextSize; xpc.contextPosition++) {
 					xpc.contextNode = nodes[xpc.contextPosition - 1];
-					if (this.predicateMatches(pred, xpc)) {
-						newNodes.push(xpc.contextNode);
+					//if we keep track of the node original context then use it
+					//end goal is to always use original cotnext, now implemented just for CHILD axis
+					var localCtx = newLocalContext.length>0?this.getLocalCtx(xpc, newLocalContext[xpc.contextPosition-1]):xpc
+					if (this.predicateMatches(pred, localCtx)) {						
+						newNodes.push(xpc.contextNode);						
 					} else {
 					}
 				}
 				nodes = newNodes;
+				//console.log(nodes.length)
 			}
 		}
-	}
+	}	
 	var ns = new XNodeSet();
 	ns.addArray(nodes);
 	return ns;
 };
 
+PathExpr.prototype.getLocalCtx = function(xpc, localCtx, length) {
+	var res = new XPathContext();
+	res.variableResolver = xpc.variableResolver;
+	res.functionResolver = xpc.functionResolver;
+	res.namespaceResolver = xpc.namespaceResolver;
+	res.expressionContextNode = xpc.expressionContextNode;
+	res.virtualRoot = xpc.virtualRoot;
+	res.caseInsensitive = xpc.caseInsensitive;
+	res.contextNode = xpc.contextNode;
+	res.contextPosition = localCtx.contextPosition;
+	res.contextSize = localCtx.contextSize;	
+	return res;
+};
+
 PathExpr.prototype.predicateMatches = function(pred, c) {
 	var res = pred.evaluate(c);
-	if (Utilities.instance_of(res, XNumber)) {
-		return c.contextPosition == res.numberValue();
+	if (Utilities.instance_of(res, XNumber)) {		
+		var val = c.contextPosition == res.numberValue()		
+		return val;
 	}
 	return res.booleanValue();
 };
