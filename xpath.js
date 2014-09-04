@@ -1833,7 +1833,7 @@ PathExpr.prototype.evaluate = function(c) {
 						} else {
 							st.unshift(xpc.contextNode.nextSibling);
 						}
-						for (var m = xpc.contextNode.parentNode; m != null && m.nodeType != 9 /*Node.DOCUMENT_NODE*/ && m !== xpc.virtualRoot; m = m.parentNode) {
+						for (var m = xpc.contextNode; m != null && m.nodeType != 9 /*Node.DOCUMENT_NODE*/ && m !== xpc.virtualRoot; m = m.parentNode) {
 							st.unshift(m.nextSibling);
 						}
 						do {

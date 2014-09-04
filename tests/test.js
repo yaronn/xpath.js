@@ -1,6 +1,7 @@
-var select = require('./xpath.js')
+var select = require('../xpath.js')
   , dom = require('xmldom').DOMParser
   , assert = require('assert')
+  , fs = require('fs')
  
 module.exports = {
 
@@ -57,6 +58,16 @@ module.exports = {
     var res = select(doc, "(//y)[last()]")
     assert.equal(1, res.length)    
     assert.equal("3", res[0].getAttribute("id"))
+    test.done()
+  },
+
+  "following axis": function (test) {   
+    var xml = fs.readFileSync('./tests/following.xml').toString()
+    var doc = new dom().parseFromString(xml)    
+    var res = select(doc, "//h4[text()='Alabama']/following::ul[1]/li/a/text()")
+    assert.equal(2, res.length)    
+    assert.equal("alabama-city111", res[0].data)
+    assert.equal("alabama-city222", res[1].data)
     test.done()
   },
   
