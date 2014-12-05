@@ -46,7 +46,7 @@ xpath is xml engine agnostic but I recommend to use [xmldom](https://github.com/
 `````javascript
     var xml = "<book><title xmlns='myns'>Harry Potter</title></book>"
     var doc = new dom().parseFromString(xml)
-    var node = xpath.select("//*[local-name(.)='title' and namespace-uri(.)='myns/']", doc)[0]
+    var node = xpath.select("//*[local-name(.)='title' and namespace-uri(.)='myns']", doc)[0]
     console.log(node.namespaceURI)
 `````
 -->
