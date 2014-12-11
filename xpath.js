@@ -1878,7 +1878,7 @@ PathExpr.prototype.evaluate = function(c) {
 								}
 							}
 							for (var pre in n) {
-								var nsn = new NamespaceNode(pre, n[pre], xpc.contextNode);
+								var nsn = new XPathNamespace(pre, n[pre], xpc.contextNode);
 								if (step.nodeTest.matches(nsn, xpc)) {
 									newNodes.push(nsn);
 								}
