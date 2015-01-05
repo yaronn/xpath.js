@@ -148,5 +148,15 @@ module.exports = {
 		assert.equal('J. K. Rowling', author);
 
 		test.done();
-	}
+	},
+	
+	'evaluate substring-after': function (test) {
+	    var xml = '<classmate>Hermione</classmate>';
+		var doc = new dom().parseFromString(xml);
+		
+		var part = xpath.select('substring-after(/classmate, "Her")', doc);
+		assert.deepEqual('mione', part);
+		
+		test.done();
+    }
 }
