@@ -2898,7 +2898,7 @@ XNodeSet.prototype.stringForNode = function(n) {
 	if (n.nodeType == 9 /*Node.DOCUMENT_NODE*/) {
 		n = n.documentElement;
 	}
-	if (n.nodeType == 1 /*Node.ELEMENT_NODE*/) {
+	if (n.nodeType == 1 /*Node.ELEMENT_NODE*/ || n.nodeType === 11 /*Node.DOCUMENT_FRAGMENT*/) {
 		return this.stringForNodeRec(n);
 	}
 	if (n.isNamespaceNode) {
@@ -3397,7 +3397,7 @@ Functions.name = function() {
 Functions.string = function() {
 	var c = arguments[0];
 	if (arguments.length == 1) {
-		return XNodeSet.prototype.stringForNode(c.contextNode);
+		return new XString(XNodeSet.prototype.stringForNode(c.contextNode));
 	} else if (arguments.length == 2) {
 		return arguments[1].evaluate(c).string();
 	}

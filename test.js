@@ -150,6 +150,33 @@ module.exports = {
 		test.done();
 	},
 	
+	'string() with no arguments': function (test) {
+		var doc = new dom().parseFromString('<book>Harry Potter</book>');
+		
+		var rootElement = xpath.select1('/book', doc);
+		assert.ok(rootElement, 'rootElement is null');
+		
+		assert.equal('Harry Potter', xpath.select1('string()', doc));
+	
+		test.done();
+	},
+	
+	'string value of document fragment': function (test) {
+		var doc = new dom().parseFromString('<n />');
+		var docFragment = doc.createDocumentFragment();
+
+		var el = doc.createElement("book");
+		docFragment.appendChild(el);
+		
+		var testValue = "Harry Potter";
+		
+		el.appendChild(doc.createTextNode(testValue));
+
+		assert.equal(testValue, xpath.select1("string()", docFragment));
+		
+		test.done();
+	},
+	
 	'evaluate substring-after': function (test) {
 	    var xml = '<classmate>Hermione</classmate>';
 		var doc = new dom().parseFromString(xml);
