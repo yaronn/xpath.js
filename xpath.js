@@ -3460,7 +3460,7 @@ Functions.substringAfter = function() {
 	if (i == -1) {
 		return new XString("");
 	}
-	return new XString(s1.substring(s1.indexOf(s2) + 1));
+	return new XString(s1.substring(i + s2.length));
 };
 
 Functions.substring = function() {
