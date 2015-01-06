@@ -149,6 +149,18 @@ module.exports = {
 
 		test.done();
 	},
+
+	'XPathException acts like Error': function (test) {
+		try {
+		    xpath.evaluate('1', null, null, null);
+			assert.fail(null, null, 'evaluate() should throw exception');
+		} catch (e) {
+			assert.ok('code' in e, 'must have a code');
+			assert.ok('stack' in e, 'must have a stack');
+		}
+		
+		test.done();
+	},
 	
 	'string() with no arguments': function (test) {
 		var doc = new dom().parseFromString('<book>Harry Potter</book>');

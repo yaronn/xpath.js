@@ -4085,23 +4085,31 @@ Utilities.getElementById = function(n, id) {
 
 // XPathException ////////////////////////////////////////////////////////////
 
-XPathException.prototype = {};
+XPathException.prototype = Object.create(Error.prototype);
 XPathException.prototype.constructor = XPathException;
-XPathException.superclass = Object.prototype;
+XPathException.superclass = Error;
 
 function XPathException(c, e) {
-	this.code = c;
-	this.exception = e;
+    var err = Error.call(this, this.getMessage(c, e));
+
+	err.code = c;
+	err.exception = e;
+	
+	return err;
 }
 
-XPathException.prototype.toString = function() {
-	var msg = this.exception ? ": " + this.exception.toString() : "";
-	switch (this.code) {
+XPathException.prototype.getMessage = function (code, exception) {
+	var msg = exception ? ": " + exception.toString() : "";
+	switch (code) {
 		case XPathException.INVALID_EXPRESSION_ERR:
 			return "Invalid expression" + msg;
 		case XPathException.TYPE_ERR:
 			return "Type error" + msg;
 	}
+};
+
+XPathException.prototype.toString = function() {
+	return this.message;
 };
 
 XPathException.INVALID_EXPRESSION_ERR = 51;
