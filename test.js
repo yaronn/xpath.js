@@ -188,6 +188,55 @@ module.exports = {
 		
 		test.done();
 	},
+
+	'compare string of a number with a number': function (test) {
+		assert.ok(xpath.select1('"000" = 0'), '000');
+		assert.ok(xpath.select1('"45.0" = 45'), '45');
+		
+		test.done();
+	},
+
+	'string(boolean) is a string': function (test) {
+		assert.equal('string', typeof xpath.select1('string(true())'));
+		assert.equal('string', typeof xpath.select1('string(false())'));
+		assert.equal('string', typeof xpath.select1('string(1 = 2)'));
+		assert.ok(xpath.select1('"true" = string(true())'), '"true" = string(true())');
+		
+		test.done();
+	},
+	
+	'string should downcast to boolean': function (test) {
+		assert.equal(false, xpath.select1('"false" = false()'), '"false" = false()');
+		assert.equal(true, xpath.select1('"a" = true()'), '"a" = true()');
+		assert.equal(true, xpath.select1('"" = false()'), '"" = false()');
+		
+		test.done();
+	},
+	
+	'string(number) is a string': function (test) {
+		assert.equal('string', typeof xpath.select1('string(45)'));
+		assert.ok(xpath.select1('"45" = string(45)'), '"45" = string(45)');
+		
+		test.done();
+	},
+	
+	'correct string to number conversion': function (test) {
+	    assert.equal(45.2, xpath.select1('number("45.200")'));
+	    assert.equal(55.0, xpath.select1('number("000055")'));
+	    assert.equal(65.0, xpath.select1('number("  65  ")'));
+
+		assert.equal(true, xpath.select1('"" != 0'), '"" != 0');
+	    assert.equal(false, xpath.select1('"" = 0'), '"" = 0');
+		assert.equal(false, xpath.select1('0 = ""'), '0 = ""');
+		assert.equal(false, xpath.select1('0 = "   "'), '0 = "   "');
+
+		assert.ok(Number.isNaN(xpath.select('number("")')), 'number("")');
+		assert.ok(Number.isNaN(xpath.select('number("45.8g")')), 'number("45.8g")');
+		assert.ok(Number.isNaN(xpath.select('number("2e9")')), 'number("2e9")');
+		assert.ok(Number.isNaN(xpath.select('number("+33")')), 'number("+33")');
+		
+		test.done();
+	},	
 	
 	'evaluate substring-after': function (test) {
 	    var xml = '<classmate>Hermione</classmate>';

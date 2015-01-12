@@ -2333,7 +2333,7 @@ function XString(s) {
 }
 
 XString.prototype.init = function(s) {
-	this.str = s;
+	this.str = String(s);
 };
 
 XString.prototype.toString = function() {
@@ -2439,7 +2439,14 @@ function XNumber(n) {
 }
 
 XNumber.prototype.init = function(n) {
-	this.num = Number(n);
+	this.num = typeof n === "string" ? this.parse(n) : Number(n);
+};
+
+XNumber.prototype.numberFormat = /^\s*-?[0-9]*\.?[0-9]+\s*$/;
+
+XNumber.prototype.parse = function(s) {
+    // XPath representation of numbers is more restrictive than what Number() or parseFloat() allow
+    return this.numberFormat.test(s) ? parseFloat(s) : Number.NaN;
 };
 
 XNumber.prototype.toString = function() {
