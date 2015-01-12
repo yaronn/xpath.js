@@ -3353,7 +3353,11 @@ Functions.localName = function() {
 	if (n == null) {
 		return new XString("");
 	}
-	return new XString(n.localName ? n.localName : n.baseName);
+
+	return new XString(n.localName ||     //  standard elements and attributes
+	                   n.baseName  ||     //  IE
+					   (n.nodeType === 7 && (n.target || n.nodeName)) ||  //  processing instruction
+					   "");               //  fallback
 };
 
 Functions.namespaceURI = function() {
@@ -3387,6 +3391,8 @@ Functions.name = function() {
 	}
 	if (n.nodeType == 1 /*Node.ELEMENT_NODE*/ || n.nodeType == 2 /*Node.ATTRIBUTE_NODE*/) {
 		return new XString(n.nodeName);
+	} else if (n.nodeType === 7 /*Node.PROCESSING_INSTRUCTION_NODE*/) {
+	    return new XString(n.target || n.nodeName);
 	} else if (n.localName == null) {
 		return new XString("");
 	} else {

@@ -150,6 +150,19 @@ module.exports = {
 		test.done();
 	},
 	
+	'local-name() and name() of processing instruction': function (test) {
+	    var xml = '<?book-record added="2015-01-16" author="J.K. Rowling" ?><book>Harry Potter</book>';
+		var doc = new dom().parseFromString(xml);
+		var expectedName = 'book-record';
+		var localName = xpath.select('local-name(/processing-instruction())', doc);
+		var name = xpath.select('name(/processing-instruction())', doc);
+		
+		assert.deepEqual(expectedName, localName, 'local-name() - "' + expectedName + '" !== "' + localName + '"');
+		assert.deepEqual(expectedName, name, 'name() - "' + expectedName + '" !== "' + name + '"');
+		
+		test.done();
+	},
+
 	'evaluate substring-after': function (test) {
 	    var xml = '<classmate>Hermione</classmate>';
 		var doc = new dom().parseFromString(xml);
