@@ -6,6 +6,7 @@ module.exports = {
 	'api': function(test) {
 		assert.ok(xpath.evaluate, 'evaluate api ok.');
 		assert.ok(xpath.select, 'select api ok.');
+        assert.ok(xpath.parse, 'parse api ok.');
 		test.done();
 	},
 
@@ -405,6 +406,123 @@ module.exports = {
                 getNamespace: resolve
             }
         }, 'Namespace object');
+        
+        test.done();
+    }
+    
+    ,'custom functions': function (test) {
+		var xml = '<book><title>Harry Potter</title></book>';
+        var doc = new dom().parseFromString(xml);
+
+        var parsed = xpath.parse('concat(double(/*/title), " is cool")');
+        
+        function doubleString(context, value) {
+            assert.equal(2, arguments.length);
+            var str = value.stringValue();
+            return str + str;
+        }
+        
+        function functions(name, namespace) {
+            if(name === 'double') {
+                return doubleString;
+            }
+            return null;
+        }
+        
+        function testContext(context, description) {
+            try{
+                var actual = parsed.evaluateString(context);
+                var expected = 'Harry PotterHarry Potter is cool';
+                assert.equal(expected, actual, description + ' - ' + expected + ' != ' + actual);
+            } catch (e) {
+                e.message = description + ": " + (e.message || '');
+                throw e;
+            }
+        }
+        
+        testContext({
+            node: doc,
+            functions: functions
+        }, 'Functions function');
+        
+        testContext({
+            node: doc,
+            functions: {
+                getFunction: functions
+            }
+        }, 'Functions object');
+        
+        testContext({
+            node: doc,
+            functions: {
+                double: doubleString
+            }
+        }, 'Functions map');
+        
+        test.done();
+    }
+    
+    ,'custom function namespaces': function (test) {
+		var xml = '<book><title>Harry Potter</title><friend>Ron</friend><friend>Hermione</friend><friend>Neville</friend></book>';
+        var doc = new dom().parseFromString(xml);
+
+        var parsed = xpath.parse('concat(hp:double(/*/title), " is 2 cool ", hp:square(2), " school")');
+        var hpns = 'http://harry-potter.com';
+        
+        var namespaces = {
+            hp: hpns
+        };
+        
+        var context = {
+            node: doc,
+            namespaces: {
+                hp: hpns
+            },
+            functions: function (name, namespace) {
+                if (namespace === hpns) {
+                    if (name === "double") {
+                        return function (context, value) {
+                            assert.equal(2, arguments.length);
+                            var str = value.stringValue();
+                            return str + str;
+                        }
+                    }
+                    if (name === "square") {
+                        return function (context, value) {
+                            var num = value.numberValue();
+                            return num * num;
+                        }
+                    }
+                    if (name === "xor") {
+                        return function (context, l, r) {
+                            assert.equal(3, arguments.length);
+                            var lbool = l.booleanValue();
+                            var rbool = r.booleanValue();
+                            return (lbool || rbool) && !(lbool && rbool);
+                        }
+                    }
+                    if (name === "second") {
+                        return function (context, nodes) {
+                            var nodesArr = nodes.toArray();
+                            var second = nodesArr[1];
+                            return second ? [second] : [];
+                        }
+                    }
+                }
+                return null;
+            }
+        };
+        
+        assert.equal('Harry PotterHarry Potter is 2 cool 4 school', parsed.evaluateString(context));
+
+        assert.equal(false, xpath.parse('hp:xor(false(), false())').evaluateBoolean(context));
+        assert.equal(true, xpath.parse('hp:xor(false(), true())').evaluateBoolean(context));
+        assert.equal(true, xpath.parse('hp:xor(true(), false())').evaluateBoolean(context));
+        assert.equal(false, xpath.parse('hp:xor(true(), true())').evaluateBoolean(context));
+
+        assert.equal('Hermione', xpath.parse('hp:second(/*/friend)').evaluateString(context));
+        assert.equal(1, xpath.parse('count(hp:second(/*/friend))').evaluateNumber(context));
+        assert.equal(0, xpath.parse('count(hp:second(/*/friendz))').evaluateNumber(context));
         
         test.done();
     }

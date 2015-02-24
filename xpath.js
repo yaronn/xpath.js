@@ -2312,9 +2312,15 @@ FunctionCall.prototype.toString = function() {
 };
 
 FunctionCall.prototype.evaluate = function(c) {
-	var f = c.functionResolver.getFunction(this.functionName, c);
+    var fn = this.functionName;
+    var parts = Utilities.resolveQName(fn, c.namespaceResolver, c.contextNode, false);
+    
+    if (parts[0] == null) {
+        throw new Error("Cannot resolve QName " + fn);
+    }
+	var f = c.functionResolver.getFunction(parts[1], parts[0]);
 	if (f == undefined) {
-		throw new Error("Unknown function " + this.functionName);
+		throw new Error("Unknown function " + fn);
 	}
 	var a = [c].concat(this.arguments);
 	return f.apply(c.functionResolver.thisArg, a);
@@ -3236,15 +3242,7 @@ FunctionResolver.prototype.addFunction = function(ns, ln, f) {
 	this.functions["{" + ns + "}" + ln] = f;
 };
 
-FunctionResolver.prototype.getFunction = function(fn, c) {
-	var parts = Utilities.resolveQName(fn, c.namespaceResolver, c.contextNode, false);
-    if (parts[0] == null) {
-        throw new Error("Cannot resolve QName " + fn);
-    }
-	return this.getFunctionWithName(parts[0], parts[1], c.contextNode);
-};
-
-FunctionResolver.prototype.getFunctionWithName = function(ns, ln, c) {
+FunctionResolver.prototype.getFunction = function(ln, ns) {
 	return this.functions["{" + ns + "}" + ln];
 };
 
@@ -4311,17 +4309,8 @@ installDOM3XPathSupport(exports, new XPathParser());
     var parser = new XPathParser();
 
     var defaultNSResolver = new NamespaceResolver();
+    var defaultFunctionResolver = new FunctionResolver();
     
-    function makeNSresolverFromMappings(mappings) {
-        return {
-            getNamespace: function (prefix, node) {
-                var ns = mappings && mappings[prefix];
-                
-                return ns || defaultNSResolver.getNamespace(prefix, node);
-            }
-        };
-    }
-
     function makeNSResolverFromFunction(func) {
         return {
             getNamespace: function (prefix, node) {
@@ -4330,11 +4319,21 @@ installDOM3XPathSupport(exports, new XPathParser());
                 return ns || defaultNSResolver.getNamespace(prefix, node);
             }
         };
-    }       
+    }
     
+    function makeNSResolverFromObject(obj) {
+        return makeNSResolverFromFunction(obj.getNamespace.bind(obj));
+    }
+    
+    function makeNSResolverFromMap(map) {
+        return makeNSResolverFromFunction(function (prefix) {
+            return map[prefix];
+        });
+    }
+
     function makeNSResolver(resolver) {
         if (resolver && typeof resolver.getNamespace === "function") {
-            return resolver;
+            return makeNSResolverFromObject(resolver);
         }
         
         if (typeof resolver === "function") {
@@ -4343,14 +4342,72 @@ installDOM3XPathSupport(exports, new XPathParser());
         
         // assume prefix -> uri mapping
         if (typeof resolver === "object") {
-            return makeNSresolverFromMappings(resolver);
+            return makeNSResolverFromMap(resolver);
         }
         
         return defaultNSResolver;
     }
     
+    function convertFuncResult(value) {
+        switch (typeof value) {
+            case "string": return new XString(value);
+            case "boolean": return new XBoolean(value);
+            case "number": return new XNumber(value);
+        }
+        
+        // assume node(s)
+        var ns = new XNodeSet();
+        ns.addArray([].concat(value));
+        return ns;
+    }
+    
+    function makeEvaluator(func) {
+        return function (context) {
+            var args = Array.prototype.slice.call(arguments, 1).map(function (arg) {
+                return arg.evaluate(context);
+            });
+            var result = func.apply(this, [].concat(context, args));
+            return convertFuncResult(result);
+        };        
+    }
+    
+    function makeFunctionResolverFromFunction(func) {
+        return {
+            getFunction: function (name, namespace) {
+                var found = func(name, namespace);
+                if (found) {
+                    return makeEvaluator(found);
+                }
+                return defaultFunctionResolver.getFunction(name, namespace);
+            }
+        };
+    }
+    
+    function makeFunctionResolverFromObject(obj) {
+        return makeFunctionResolverFromFunction(obj.getFunction.bind(obj));
+    }
+    
+    function makeFunctionResolverFromMap(map) {
+        return makeFunctionResolverFromFunction(function (name) {
+            return map[name];
+        });
+    }
+  
     function makeFunctionResolver(resolver) {
-        throw new Error("Not implemented");
+        if (resolver && typeof resolver.getFunction === "function") {
+            return makeFunctionResolverFromObject(resolver);
+        }
+        
+        if (typeof resolver === "function") {
+            return makeFunctionResolverFromFunction(resolver);
+        }
+        
+        // assume map
+        if (typeof resolver === "object") {
+            return makeFunctionResolverFromMap(resolver);
+        }
+        
+        return defaultFunctionResolver;
     }
     
     function makeContext(options) {
@@ -4358,6 +4415,7 @@ installDOM3XPathSupport(exports, new XPathParser());
 
         if (options) {
             context.namespaceResolver = makeNSResolver(options.namespaces);
+            context.functionResolver = makeFunctionResolver(options.functions);
             context.expressionContextNode = options.node;
         } else {
             context.namespaceResolver = defaultNSResolver;
