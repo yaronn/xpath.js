@@ -262,7 +262,7 @@ module.exports = {
     }
     
     ,'parsed expression with no options': function (test) {
-        var parsed = xpath.parser.parse('5 + 7');
+        var parsed = xpath.parse('5 + 7');
         
         assert.equal(typeof parsed, "object", "parse() should return an object");
         assert.equal(typeof parsed.evaluate, "function", "parsed.evaluate should be a function");
@@ -279,7 +279,7 @@ module.exports = {
     ,'select1() on parsed expression': function (test) {
 		var xml = '<book><title>Harry Potter</title></book>';
 		var doc = new dom().parseFromString(xml);
-        var parsed = xpath.parser.parse('/*/title');
+        var parsed = xpath.parse('/*/title');
         
         assert.equal(typeof parsed, 'object', 'parse() should return an object');
         
@@ -297,7 +297,7 @@ module.exports = {
     ,'select() on parsed expression': function (test) {
 		var xml = '<book><title>Harry Potter</title></book>';
 		var doc = new dom().parseFromString(xml);
-        var parsed = xpath.parser.parse('/*/title');
+        var parsed = xpath.parse('/*/title');
         
         assert.equal(typeof parsed, 'object', 'parse() should return an object');
         
@@ -317,7 +317,7 @@ module.exports = {
     ,'evaluateString(), and evaluateNumber() on parsed expression with node': function (test) {
 		var xml = '<book><title>Harry Potter</title><numVolumes>7</numVolumes></book>';
 		var doc = new dom().parseFromString(xml);
-        var parsed = xpath.parser.parse('/*/numVolumes');
+        var parsed = xpath.parse('/*/numVolumes');
         
         assert.equal(typeof parsed, 'object', 'parse() should return an object');
         
@@ -339,7 +339,7 @@ module.exports = {
         var context = { node: doc };
         
         function evaluate(path) {
-            return xpath.parser.parse(path).evaluateBoolean({ node: doc });
+            return xpath.parse(path).evaluateBoolean({ node: doc });
         }
 
         assert.equal(false, evaluate('/*/myrtle'), 'boolean value of empty node set should be false');
@@ -353,6 +353,58 @@ module.exports = {
         assert.equal(false, evaluate('/*/title != "Harry Potter"'), 'title != Harry Potter should be false');
 
         assert.equal(false, evaluate('/*/title = "Percy Jackson"'), 'title should not equal Percy Jackson');
+        
+        test.done();
+    }
+    
+    ,'namespaces with parsed expression': function (test) {
+        var xml = '<characters xmlns:ps="http://philosophers-stone.com" xmlns:cs="http://chamber-secrets.com">' +
+                  '<ps:character>Quirrell</ps:character><ps:character>Fluffy</ps:character>' +
+                  '<cs:character>Myrtle</cs:character><cs:character>Tom Riddle</cs:character>' +
+                  '</characters>';
+        var doc = new dom().parseFromString(xml);
+
+        var expr = xpath.parse('/characters/c:character');
+        var countExpr = xpath.parse('count(/characters/c:character)');
+        var csns = 'http://chamber-secrets.com';
+        
+        function resolve(prefix) {
+            if (prefix === 'c') {
+                return csns;
+            }
+        }
+        
+        function testContext(context, description) {
+            try {
+                var value = expr.evaluateString(context);
+                var count = countExpr.evaluateNumber(context);
+
+                assert.equal('Myrtle', value, description + ' - string value - ' + value);
+                assert.equal(2, count, description + ' map - count - ' + count);
+            } catch(e) {
+                e.message = description + ': ' + (e.message || '');
+                throw e;
+            }
+        }
+        
+        testContext({
+            node: doc,
+            namespaces: {
+                c: csns
+            }
+        }, 'Namespace map');
+        
+        testContext({
+            node: doc,
+            namespaces: resolve
+        }, 'Namespace function');
+        
+        testContext({
+            node: doc,
+            namespaces: {
+                getNamespace: resolve
+            }
+        }, 'Namespace object');
         
         test.done();
     }

@@ -4341,6 +4341,7 @@ installDOM3XPathSupport(exports, new XPathParser());
             return makeNSResolverFromFunction(resolver);
         }
         
+        // assume prefix -> uri mapping
         if (typeof resolver === "object") {
             return makeNSresolverFromMappings(resolver);
         }
@@ -4411,9 +4412,7 @@ installDOM3XPathSupport(exports, new XPathParser());
         });
     }
 
-    exports.parser = {
-        parse: parse
-    };
+    exports.parse = parse;
 })();
 
 exports.XPathResult = XPathResult;
