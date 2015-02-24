@@ -4307,6 +4307,115 @@ try {
 
 installDOM3XPathSupport(exports, new XPathParser());
 
+(function() {
+    var parser = new XPathParser();
+
+    var defaultNSResolver = new NamespaceResolver();
+    
+    function makeNSresolverFromMappings(mappings) {
+        return {
+            getNamespace: function (prefix, node) {
+                var ns = mappings && mappings[prefix];
+                
+                return ns || defaultNSResolver.getNamespace(prefix, node);
+            }
+        };
+    }
+
+    function makeNSResolverFromFunction(func) {
+        return {
+            getNamespace: function (prefix, node) {
+                var ns = func(prefix, node);
+                 
+                return ns || defaultNSResolver.getNamespace(prefix, node);
+            }
+        };
+    }       
+    
+    function makeNSResolver(resolver) {
+        if (resolver && typeof resolver.getNamespace === "function") {
+            return resolver;
+        }
+        
+        if (typeof resolver === "function") {
+            return makeNSResolverFromFunction(resolver);
+        }
+        
+        if (typeof resolver === "object") {
+            return makeNSresolverFromMappings(resolver);
+        }
+        
+        return defaultNSResolver;
+    }
+    
+    function makeFunctionResolver(resolver) {
+        throw new Error("Not implemented");
+    }
+    
+    function makeContext(options) {
+        var context = new XPathContext();
+
+        if (options) {
+            context.namespaceResolver = makeNSResolver(options.namespaces);
+            context.expressionContextNode = options.node;
+        } else {
+            context.namespaceResolver = defaultNSResolver;
+        }
+        
+        return context;
+    }
+    
+    function evaluate(parsedExpression, options) {
+        var context = makeContext(options);
+        
+        return parsedExpression.evaluate(context);
+    }
+    
+    var evaluatorPrototype = {
+        evaluate: function (options) {
+            return evaluate(this.expression, options);
+        }
+        
+        ,evaluateNumber: function (options) {
+            return this.evaluate(options).numberValue();
+        }
+        
+        ,evaluateString: function (options) {
+            return this.evaluate(options).stringValue();
+        }
+        
+        ,evaluateBoolean: function (options) {
+            return this.evaluate(options).booleanValue();
+        }
+        
+        ,evaluateNodeSet: function (options) {
+            return this.evaluate(options).nodeset();
+        }
+        
+        ,select: function (options) {
+            return this.evaluateNodeSet(options).toArray()
+        }
+        
+        ,select1: function (options) {
+            return this.select(options)[0];
+        }
+    };
+
+    function parse(xpath) {
+        var parsed = parser.parse(xpath);
+        
+        return Object.create(evaluatorPrototype, {
+            expression: {
+                value: parsed
+            }
+        });
+    }
+
+    exports.parser = {
+        parse: parse
+    };
+})();
+
 exports.XPathResult = XPathResult;
 
 // helper

@@ -260,4 +260,100 @@ module.exports = {
 		
 		test.done();
     }
+    
+    ,'parsed expression with no options': function (test) {
+        var parsed = xpath.parser.parse('5 + 7');
+        
+        assert.equal(typeof parsed, "object", "parse() should return an object");
+        assert.equal(typeof parsed.evaluate, "function", "parsed.evaluate should be a function");
+        assert.equal(typeof parsed.evaluateNumber, "function", "parsed.evaluateNumber should be a function");
+ 
+        assert.equal(parsed.evaluateNumber(), 12);
+
+        // evaluating twice should yield the same result
+        assert.equal(parsed.evaluateNumber(), 12);
+ 
+        test.done();
+    }
+    
+    ,'select1() on parsed expression': function (test) {
+		var xml = '<book><title>Harry Potter</title></book>';
+		var doc = new dom().parseFromString(xml);
+        var parsed = xpath.parser.parse('/*/title');
+        
+        assert.equal(typeof parsed, 'object', 'parse() should return an object');
+        
+        assert.equal(typeof parsed.select1, 'function', 'parsed.select1 should be a function');
+        
+        var single = parsed.select1({ node: doc });
+        
+		assert.equal('title', single.localName);
+		assert.equal('Harry Potter', single.firstChild.data);
+		assert.equal('<title>Harry Potter</title>', single.toString());
+        
+        test.done();
+    }
+
+    ,'select() on parsed expression': function (test) {
+		var xml = '<book><title>Harry Potter</title></book>';
+		var doc = new dom().parseFromString(xml);
+        var parsed = xpath.parser.parse('/*/title');
+        
+        assert.equal(typeof parsed, 'object', 'parse() should return an object');
+        
+        assert.equal(typeof parsed.select, 'function', 'parsed.select should be a function');
+        
+        var nodes = parsed.select({ node: doc });
+        
+        assert.ok(nodes, 'parsed.select() should return a value');
+        assert.equal(1, nodes.length);
+		assert.equal('title', nodes[0].localName);
+		assert.equal('Harry Potter', nodes[0].firstChild.data);
+		assert.equal('<title>Harry Potter</title>', nodes[0].toString());
+        
+        test.done();
+    }
+
+    ,'evaluateString(), and evaluateNumber() on parsed expression with node': function (test) {
+		var xml = '<book><title>Harry Potter</title><numVolumes>7</numVolumes></book>';
+		var doc = new dom().parseFromString(xml);
+        var parsed = xpath.parser.parse('/*/numVolumes');
+        
+        assert.equal(typeof parsed, 'object', 'parse() should return an object');
+        
+        assert.equal(typeof parsed.evaluateString, 'function', 'parsed.evaluateString should be a function');
+        assert.equal('7', parsed.evaluateString({ node: doc }));
+        
+        assert.equal(typeof parsed.evaluateBoolean, 'function', 'parsed.evaluateBoolean should be a function');
+        assert.equal(true, parsed.evaluateBoolean({ node: doc }));
+
+        assert.equal(typeof parsed.evaluateNumber, 'function', 'parsed.evaluateNumber should be a function');
+        assert.equal(7, parsed.evaluateNumber({ node: doc }));
+
+        test.done();
+    }
+    
+    ,'evaluateBoolean() on parsed empty node set and boolean expressions': function (test) {
+		var xml = '<book><title>Harry Potter</title></book>';
+		var doc = new dom().parseFromString(xml);
+        var context = { node: doc };
+        
+        function evaluate(path) {
+            return xpath.parser.parse(path).evaluateBoolean({ node: doc });
+        }
+
+        assert.equal(false, evaluate('/*/myrtle'), 'boolean value of empty node set should be false');
+        
+        assert.equal(true, evaluate('not(/*/myrtle)'), 'not() of empty nodeset should be true');
+
+        assert.equal(true, evaluate('/*/title'), 'boolean value of non-empty nodeset should be true');
+        
+        assert.equal(true, evaluate('/*/title = "Harry Potter"'), 'title equals Harry Potter');
+
+        assert.equal(false, evaluate('/*/title != "Harry Potter"'), 'title != Harry Potter should be false');
+
+        assert.equal(false, evaluate('/*/title = "Percy Jackson"'), 'title should not equal Percy Jackson');
+        
+        test.done();
+    }
 }
