@@ -480,33 +480,33 @@ module.exports = {
             },
             functions: function (name, namespace) {
                 if (namespace === hpns) {
-                    if (name === "double") {
-                        return function (context, value) {
-                            assert.equal(2, arguments.length);
-                            var str = value.stringValue();
-                            return str + str;
-                        }
-                    }
-                    if (name === "square") {
-                        return function (context, value) {
-                            var num = value.numberValue();
-                            return num * num;
-                        }
-                    }
-                    if (name === "xor") {
-                        return function (context, l, r) {
-                            assert.equal(3, arguments.length);
-                            var lbool = l.booleanValue();
-                            var rbool = r.booleanValue();
-                            return (lbool || rbool) && !(lbool && rbool);
-                        }
-                    }
-                    if (name === "second") {
-                        return function (context, nodes) {
-                            var nodesArr = nodes.toArray();
-                            var second = nodesArr[1];
-                            return second ? [second] : [];
-                        }
+                    switch (name) {
+                        case "double":
+                            return function (context, value) {
+                                assert.equal(2, arguments.length);
+                                var str = value.stringValue();
+                                return str + str;
+                            };
+                        case "square":
+                            return function (context, value) {
+                                var num = value.numberValue();
+                                return num * num;
+                            };
+
+                        case "xor":
+                            return function (context, l, r) {
+                                assert.equal(3, arguments.length);
+                                var lbool = l.booleanValue();
+                                var rbool = r.booleanValue();
+                                return (lbool || rbool) && !(lbool && rbool);
+                            };
+
+                        case "second":
+                            return function (context, nodes) {
+                                var nodesArr = nodes.toArray();
+                                var second = nodesArr[1];
+                                return second ? [second] : [];
+                            };
                     }
                 }
                 return null;
@@ -523,6 +523,93 @@ module.exports = {
         assert.equal('Hermione', xpath.parse('hp:second(/*/friend)').evaluateString(context));
         assert.equal(1, xpath.parse('count(hp:second(/*/friend))').evaluateNumber(context));
         assert.equal(0, xpath.parse('count(hp:second(/*/friendz))').evaluateNumber(context));
+        
+        test.done();
+    }
+    
+    ,'xpath variables': function (test) {
+		var xml = '<book><title>Harry Potter</title><volumes>7</volumes></book>';
+        var doc = new dom().parseFromString(xml);
+        
+        var variables = {
+            title: 'Harry Potter',
+            notTitle: 'Percy Jackson',
+            houses: 4
+        };
+        
+        function variableFunction(name) {
+            return variables[name];
+        }
+        
+        function testContext(context, description) {
+            try{
+                assert.equal(true, xpath.parse('$title = /*/title').evaluateBoolean(context));
+                assert.equal(false, xpath.parse('$notTitle = /*/title').evaluateBoolean(context));
+                assert.equal(11, xpath.parse('$houses + /*/volumes').evaluateNumber(context));
+            } catch (e) {
+                e.message = description + ": " + (e.message || '');
+                throw e;
+            }
+        }
+
+        testContext({
+            node: doc,
+            variables: variableFunction
+        }, 'Variables function');
+
+        testContext({
+            node: doc,
+            variables: {
+                getVariable: variableFunction
+            }
+        }, 'Variables object');
+        
+        testContext({
+            node: doc,
+            variables: variables
+        }, 'Variables map');
+        
+        test.done();
+    }
+    
+    ,'xpath variable namespaces': function (test) {
+		var xml = '<book><title>Harry Potter</title><volumes>7</volumes></book>';
+        var doc = new dom().parseFromString(xml);
+        var hpns = 'http://harry-potter.com';
+        
+        var context = {
+            node: doc,
+            namespaces: {
+                hp: hpns
+            },
+            variables: function(name, namespace) {
+                if (namespace === hpns) {
+                    switch (name) {
+                        case 'title': return 'Harry Potter';
+                        case 'houses': return 4;
+                        case 'false': return false;
+                        case 'falseStr': return 'false';
+                    }
+                } else if (namespace === '') {
+                    switch (name) {
+                        case 'title': return 'World';
+                    }
+                }
+            
+                return null;
+            }
+        };
+        
+        assert.equal(true, xpath.parse('$hp:title = /*/title').evaluateBoolean(context));
+        assert.equal(false, xpath.parse('$title = /*/title').evaluateBoolean(context));
+        assert.equal('World', xpath.parse('$title').evaluateString(context));
+        assert.equal(false, xpath.parse('$hp:false').evaluateBoolean(context));
+        assert.notEqual(false, xpath.parse('$hp:falseStr').evaluateBoolean(context));
+        assert.throws(function () {
+            xpath.parse('$hp:hello').evaluateString(context);
+        }, function (err) {
+            return err.message === 'Undeclared variable: $hp:hello';
+        });
         
         test.done();
     }

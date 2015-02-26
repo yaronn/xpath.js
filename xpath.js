@@ -2280,7 +2280,16 @@ VariableReference.prototype.toString = function() {
 };
 
 VariableReference.prototype.evaluate = function(c) {
-	return c.variableResolver.getVariable(this.variable, c);
+    var parts = Utilities.resolveQName(this.variable, c.namespaceResolver, c.contextNode, false);
+    
+    if (parts[0] == null) {
+        throw new Error("Cannot resolve QName " + fn);
+    }
+	var result = c.variableResolver.getVariable(parts[1], parts[0]);
+    if (!result) {
+        throw new XPathException.fromMessage("Undeclared variable: " + this.toString());
+    }
+    return result;
 };
 
 // FunctionCall //////////////////////////////////////////////////////////////
@@ -3181,18 +3190,7 @@ VariableResolver.superclass = Object.prototype;
 function VariableResolver() {
 }
 
-VariableResolver.prototype.getVariable = function(vn, c) {
-	var parts = Utilities.splitQName(vn);
-	if (parts[0] != null) {
-		parts[0] = c.namespaceResolver.getNamespace(parts[0], c.expressionContextNode);
-        if (parts[0] == null) {
-            throw new Error("Cannot resolve QName " + fn);
-        }
-	}
-	return this.getVariableWithName(parts[0], parts[1], c.expressionContextNode);
-};
-
-VariableResolver.prototype.getVariableWithName = function(ns, ln, c) {
+VariableResolver.prototype.getVariable = function(ln, ns) {
 	return null;
 };
 
@@ -4096,35 +4094,44 @@ Utilities.getElementById = function(n, id) {
 
 // XPathException ////////////////////////////////////////////////////////////
 
-XPathException.prototype = Object.create(Error.prototype);
-XPathException.prototype.constructor = XPathException;
-XPathException.superclass = Error;
+var XPathException = (function () {
+    function getMessage(code, exception) {
+        var msg = exception ? ": " + exception.toString() : "";
+        switch (code) {
+            case XPathException.INVALID_EXPRESSION_ERR:
+                return "Invalid expression" + msg;
+            case XPathException.TYPE_ERR:
+                return "Type error" + msg;
+        }
+        return null;
+    }
+    
+    function XPathException(code, error, message) {
+        var err = Error.call(this, getMessage(code, error) || message);
 
-function XPathException(c, e) {
-    var err = Error.call(this, this.getMessage(c, e));
-
-	err.code = c;
-	err.exception = e;
+        err.code = code;
+        err.exception = error;
 	
-	return err;
-}
+        return err;
+    }
+    
+    XPathException.prototype = Object.create(Error.prototype);
+    XPathException.prototype.constructor = XPathException;
+    XPathException.superclass = Error;
 
-XPathException.prototype.getMessage = function (code, exception) {
-	var msg = exception ? ": " + exception.toString() : "";
-	switch (code) {
-		case XPathException.INVALID_EXPRESSION_ERR:
-			return "Invalid expression" + msg;
-		case XPathException.TYPE_ERR:
-			return "Type error" + msg;
-	}
-};
+    XPathException.prototype.toString = function() {
+        return this.message;
+    };
+    
+    XPathException.fromMessage = function(message, error) {
+        return new XPathException(null, error, message);
+    };
 
-XPathException.prototype.toString = function() {
-	return this.message;
-};
-
-XPathException.INVALID_EXPRESSION_ERR = 51;
-XPathException.TYPE_ERR = 52;
+    XPathException.INVALID_EXPRESSION_ERR = 51;
+    XPathException.TYPE_ERR = 52;
+    
+    return XPathException;
+})();
 
 // XPathExpression ///////////////////////////////////////////////////////////
 
@@ -4310,6 +4317,7 @@ installDOM3XPathSupport(exports, new XPathParser());
 
     var defaultNSResolver = new NamespaceResolver();
     var defaultFunctionResolver = new FunctionResolver();
+    var defaultVariableResolver = new VariableResolver();
     
     function makeNSResolverFromFunction(func) {
         return {
@@ -4348,7 +4356,17 @@ installDOM3XPathSupport(exports, new XPathParser());
         return defaultNSResolver;
     }
     
-    function convertFuncResult(value) {
+    /** Converts native JavaScript types to their XPath library equivalent */
+    function convertValue(value) {
+        if (value === null ||
+            typeof value === "undefined" ||
+            value instanceof XString ||
+            value instanceof XBoolean ||
+            value instanceof XNumber ||
+            value instanceof XNodeSet) {
+            return value;
+        }
+        
         switch (typeof value) {
             case "string": return new XString(value);
             case "boolean": return new XBoolean(value);
@@ -4367,7 +4385,7 @@ installDOM3XPathSupport(exports, new XPathParser());
                 return arg.evaluate(context);
             });
             var result = func.apply(this, [].concat(context, args));
-            return convertFuncResult(result);
+            return convertValue(result);
         };        
     }
     
@@ -4410,12 +4428,43 @@ installDOM3XPathSupport(exports, new XPathParser());
         return defaultFunctionResolver;
     }
     
+    function makeVariableResolverFromFunction(func) {
+        return {
+            getVariable: function (name, namespace) {
+                var value = func(name, namespace);
+                return convertValue(value);
+            }
+        };
+    }
+        
+    function makeVariableResolver(resolver) {
+        if (resolver) {
+            if (typeof resolver.getVariable === "function") {
+                return makeVariableResolverFromFunction(resolver.getVariable.bind(resolver));
+            }
+            
+            if (typeof resolver === "function") {
+                return makeVariableResolverFromFunction(resolver);
+            }
+            
+            // assume map
+            if (typeof resolver === "object") {
+                return makeVariableResolverFromFunction(function (name) {
+                    return resolver[name];
+                });
+            }
+        }
+        
+        return defaultVariableResolver;
+    }
+    
     function makeContext(options) {
         var context = new XPathContext();
 
         if (options) {
             context.namespaceResolver = makeNSResolver(options.namespaces);
             context.functionResolver = makeFunctionResolver(options.functions);
+            context.variableResolver = makeVariableResolver(options.variables);
             context.expressionContextNode = options.node;
         } else {
             context.namespaceResolver = defaultNSResolver;
