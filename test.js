@@ -613,4 +613,14 @@ module.exports = {
         
         test.done();
     }
+
+    ,"detect unterminated string literals": function (test) {
+        assert.throws(function () {
+            xpath.evaluate('"hello');
+        }, function (err) {
+            return err.message.indexOf('Unterminated') !== -1;
+        });
+        
+        test.done();
+    }
 }

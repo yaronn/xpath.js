@@ -880,9 +880,14 @@ XPathParser.prototype.tokenize = function(s1) {
 		if (c == '\'' || c == '"') {
 			var delimiter = c;
 			var literal = "";
-			while ((c = s.charAt(pos++)) != delimiter) {
+			while (pos < s.length && (c = s.charAt(pos)) !== delimiter) {
 				literal += c;
+                pos += 1;
 			}
+            if (c !== delimiter) {
+                throw XPathException.fromMessage("Unterminated string literal: " + delimiter + literal);
+            }
+            pos += 1;
 			types.push(XPathParser.LITERAL);
 			values.push(literal);
 			c = s.charAt(pos++);
@@ -2287,7 +2292,7 @@ VariableReference.prototype.evaluate = function(c) {
     }
 	var result = c.variableResolver.getVariable(parts[1], parts[0]);
     if (!result) {
-        throw new XPathException.fromMessage("Undeclared variable: " + this.toString());
+        throw XPathException.fromMessage("Undeclared variable: " + this.toString());
     }
     return result;
 };
