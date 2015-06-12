@@ -615,12 +615,32 @@ module.exports = {
     }
 
     ,"detect unterminated string literals": function (test) {
-        assert.throws(function () {
-            xpath.evaluate('"hello');
-        }, function (err) {
-            return err.message.indexOf('Unterminated') !== -1;
-        });
+        function testUnterminated(path) {
+            assert.throws(function () {
+                xpath.evaluate('"hello');
+            }, function (err) {
+                return err.message.indexOf('Unterminated') !== -1;
+            });
+        }
+        
+        testUnterminated('"Hello');
+        testUnterminated("'Hello");
+        testUnterminated('self::text() = "\""');
+        testUnterminated('"\""');
+
+        test.done();
+    }
+    
+    ,"string value for CDATA sections": function (test) {
+        var xml = "<MediaFile><![CDATA[https://server]]></MediaFile>",
+            doc = new dom().parseFromString(xml),
+            file1 = xpath.parse("//MediaFile/text()").evaluateString({ node: doc }),
+            file2 = xpath.select("string(//MediaFile/text())", doc);
+
+        assert.equal(file1, 'https://server');
+        assert.equal(file2, 'https://server');
         
         test.done();
     }
+    
 }
