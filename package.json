@@ -19,5 +19,5 @@
         "test": "nodeunit tests/test.js"
     },
     "keywords": ["xpath", "xml"],
-    "license": "MIT"
+    "license": "Creative Commons Attribution-ShareAlike License"
 }
