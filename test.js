@@ -643,4 +643,28 @@ module.exports = {
         test.done();
     }
     
+    ,"exposes custom types": function (test) {
+        assert.ok(xpath.XPath, "xpath.XPath");
+        assert.ok(xpath.XPathParser, "xpath.XPathParser");
+        assert.ok(xpath.XPathResult, "xpath.XPathResult");
+        
+        assert.ok(xpath.Step, "xpath.Step");
+        assert.ok(xpath.NodeTest, "xpath.NodeTest");
+        assert.ok(xpath.BarOperation, "xpath.BarOperation");
+        
+        assert.ok(xpath.NamespaceResolver, "xpath.NamespaceResolver");
+        assert.ok(xpath.FunctionResolver, "xpath.FunctionResolver");
+        assert.ok(xpath.VariableResolver, "xpath.VariableResolver");
+        
+        assert.ok(xpath.Utilities, "xpath.Utilities");
+        
+        assert.ok(xpath.XPathContext, "xpath.XPathContext");
+        assert.ok(xpath.XNodeSet, "xpath.XNodeSet");
+        assert.ok(xpath.XBoolean, "xpath.XBoolean");
+        assert.ok(xpath.XString, "xpath.XString");
+        assert.ok(xpath.XNumber, "xpath.XNumber");
+        
+        test.done();
+    }
+    
 }

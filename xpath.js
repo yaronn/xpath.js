@@ -2326,17 +2326,13 @@ FunctionCall.prototype.toString = function() {
 };
 
 FunctionCall.prototype.evaluate = function(c) {
-    var fn = this.functionName;
-    var parts = Utilities.resolveQName(fn, c.namespaceResolver, c.contextNode, false);
-    
-    if (parts[0] == null) {
-        throw new Error("Cannot resolve QName " + fn);
-    }
-	var f = c.functionResolver.getFunction(parts[1], parts[0]);
-	if (f == undefined) {
+    var f = FunctionResolver.getFunctionFromContext(this.functionName, c);
+
+    if (!f) {
 		throw new Error("Unknown function " + fn);
 	}
-	var a = [c].concat(this.arguments);
+
+    var a = [c].concat(this.arguments);
 	return f.apply(c.functionResolver.thisArg, a);
 };
 
@@ -3245,8 +3241,18 @@ FunctionResolver.prototype.addFunction = function(ns, ln, f) {
 	this.functions["{" + ns + "}" + ln] = f;
 };
 
-FunctionResolver.prototype.getFunction = function(ln, ns) {
-	return this.functions["{" + ns + "}" + ln];
+FunctionResolver.getFunctionFromContext = function(qName, context) {
+    var parts = Utilities.resolveQName(qName, context.namespaceResolver, context.contextNode, false);
+
+    if (parts[0] === null) {
+        throw new Error("Cannot resolve QName " + name);
+    }
+
+    return context.functionResolver.getFunction(parts[1], parts[0]);
+};
+
+FunctionResolver.prototype.getFunction = function(localName, namespace) {
+	return this.functions["{" + namespace + "}" + localName];
 };
 
 // NamespaceResolver /////////////////////////////////////////////////////////
@@ -4527,7 +4533,25 @@ installDOM3XPathSupport(exports, new XPathParser());
     exports.parse = parse;
 })();
 
+exports.XPath = XPath;
+exports.XPathParser = XPathParser;
 exports.XPathResult = XPathResult;
+
+exports.Step = Step;
+exports.NodeTest = NodeTest;
+exports.BarOperation = BarOperation;
+
+exports.NamespaceResolver = NamespaceResolver;
+exports.FunctionResolver = FunctionResolver;
+exports.VariableResolver = VariableResolver;
+
+exports.Utilities = Utilities;
+
+exports.XPathContext = XPathContext;
+exports.XNodeSet = XNodeSet;
+exports.XBoolean = XBoolean;
+exports.XString = XString;
+exports.XNumber = XNumber;
 
 // helper
 exports.select = function(e, doc, single) {
