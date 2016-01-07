@@ -2798,8 +2798,8 @@ AVLTree.prototype.order = function(n1, n2) {
 	if (n1 === n2) {
 		return 0;
 	}
-	var d1 = 0;
-	var d2 = 0;
+	var d1 = 0,
+	    d2 = 0;
 	for (var m1 = n1; m1 != null; m1 = m1.parentNode) {
 		d1++;
 	}
@@ -2823,18 +2823,28 @@ AVLTree.prototype.order = function(n1, n2) {
 			return -1;
 		}
 	}
-	while (n1.parentNode != n2.parentNode) {
-		n1 = n1.parentNode;
-		n2 = n2.parentNode;
+
+    var n1Par = n1.parentNode,
+        n2Par = n2.parentNode;
+
+	while (n1Par !== n2Par) {
+		n1 = n1Par;
+		n2 = n2Par;
+		n1Par = n1.parentNode;
+	    n2Par = n2.parentNode;
 	}
-	while (n1.previousSibling != null && n2.previousSibling != null) {
-		n1 = n1.previousSibling;
-		n2 = n2.previousSibling;
+
+    var n1Prev = n1.previousSibling,
+        n2Prev = n2.previousSibling;
+
+	while (n1Prev && n2Prev) {
+		n1 = n1Prev;
+		n2 = n2Prev;
+		n1Prev = n1.previousSibling;
+	    n2Prev = n2.previousSibling;
 	}
-	if (n1.previousSibling == null) {
-		return -1;
-	}
-	return 1;
+
+	return n1Prev ? 1 : -1;
 };
 
 AVLTree.prototype.add = function(n)  {
