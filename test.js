@@ -675,7 +675,27 @@ module.exports = {
         assert.ok(xpath.select1('/book/characters', doc));
         
         assert.equal(xpath.select1('local-name(/book/characters)', doc), 'characters');
+
+        test.done();
+    }
         
+    ,"preceding:: axis works on document fragments": function (test) {
+        var doc = new dom().parseFromString('<n />'),
+            df = doc.createDocumentFragment(),
+            root = doc.createElement('book');
+            
+        df.appendChild(root);
+        
+        for (var i = 0; i < 10; i += 1) {
+            root.appendChild(doc.createElement('chapter'));
+        }
+        
+        var chapter = xpath.select1("book/chapter[5]", df);
+        
+        assert.ok(chapter, 'chapter');
+        
+        assert.equal(xpath.select("count(preceding::chapter)", chapter), 4);
+         
         test.done();
     }
 }

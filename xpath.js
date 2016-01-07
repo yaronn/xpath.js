@@ -1663,6 +1663,18 @@ PathExpr.prototype.init = function(filter, filterPreds, locpath) {
 	this.locationPath = locpath;
 };
 
+/**
+ * Returns the topmost node of the tree containing node
+ */
+function findRoot(node) {
+    while (node && node.parentNode) {
+        node = node.parentNode;
+    }
+
+    return node;
+}
+
+
 PathExpr.prototype.evaluate = function(c) {
 	var nodes;
 	var xpc = new XPathContext();
@@ -1910,9 +1922,8 @@ PathExpr.prototype.evaluate = function(c) {
 						if (xpc.virtualRoot != null) {
 							st = [ xpc.virtualRoot ];
 						} else {
-							st = xpc.contextNode.nodeType == 9 /*Node.DOCUMENT_NODE*/
-								? [ xpc.contextNode ]
-								: [ xpc.contextNode.ownerDocument ];
+                            // cannot rely on .ownerDocument because the node may be in a document fragment
+                            st = [findRoot(xpc.contextNode)];
 						}
 						outer: while (st.length > 0) {
 							for (var m = st.pop(); m != null; ) {
