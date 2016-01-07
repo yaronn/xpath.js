@@ -2220,20 +2220,20 @@ NodeTest.prototype.matches = function(n, xpc) {
 				if (test[0] == null) {
 					throw new Error("Cannot resolve QName " + this.value);
 				}
-				test[0] = String(test[0]);
+
+				test[0] = String(test[0]) || null;
 				test[1] = String(test[1]);
-				if (test[0] == "") {
-					test[0] = null;
-				}
-				var node = [n.namespaceURI || '', n.localName];
-				node[0] = String(node[0]);
-				node[1] = String(node[1]);
-				if (node[0] == "") {
-					node[0] = null;
-				}
+
+				var node = [
+                    String(n.namespaceURI || '') || null,
+                    // localName will be null if the node was created with DOM1 createElement()
+                    String(n.localName || n.nodeName)
+                ];
+
 				if (xpc.caseInsensitive) {
-					return test[0] == node[0] && String(test[1]).toLowerCase() == String(node[1]).toLowerCase();
+					return test[0] == node[0] && test[1].toLowerCase() == node[1].toLowerCase();
 				}
+                
 				return test[0] == node[0] && test[1] == node[1];
 			}
 			return false;
@@ -3370,7 +3370,8 @@ Functions.localName = function() {
 
 	return new XString(n.localName ||     //  standard elements and attributes
 	                   n.baseName  ||     //  IE
-					   (n.nodeType === 7 && (n.target || n.nodeName)) ||  //  processing instruction
+					   n.target    ||     //  processing instructions
+                       n.nodeName  ||     //  DOM1 elements
 					   "");               //  fallback
 };
 

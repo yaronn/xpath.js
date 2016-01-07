@@ -667,4 +667,15 @@ module.exports = {
         test.done();
     }
     
+    ,"work with nodes created using DOM1 createElement()": function (test) {
+        var doc = new dom().parseFromString('<book />');
+        
+        doc.documentElement.appendChild(doc.createElement('characters'));
+        
+        assert.ok(xpath.select1('/book/characters', doc));
+        
+        assert.equal(xpath.select1('local-name(/book/characters)', doc), 'characters');
+        
+        test.done();
+    }
 }
