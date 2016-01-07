@@ -3671,7 +3671,7 @@ Functions.round = function() {
 
 // Utilities /////////////////////////////////////////////////////////////////
 
-Utilities = new Object();
+var Utilities = new Object();
 
 Utilities.splitQName = function(qn) {
 	var i = qn.indexOf(":");
