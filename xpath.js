@@ -2205,28 +2205,30 @@ NodeTest.prototype.toString = function() {
 	return "<unknown nodetest type>";
 };
 
-NodeTest.prototype.matches = function(n, xpc) {
+NodeTest.prototype.matches = function (n, xpc) {
+    var nType = n.nodeType;
+
 	switch (this.type) {
 		case NodeTest.NAMETESTANY:
-			if (n.nodeType == 2 /*Node.ATTRIBUTE_NODE*/
-					|| n.nodeType == 1 /*Node.ELEMENT_NODE*/
-					|| n.nodeType == XPathNamespace.XPATH_NAMESPACE_NODE) {
+			if (nType === 2 /*Node.ATTRIBUTE_NODE*/
+					|| nType === 1 /*Node.ELEMENT_NODE*/
+					|| nType === XPathNamespace.XPATH_NAMESPACE_NODE) {
 				return true;
 			}
 			return false;
 		case NodeTest.NAMETESTPREFIXANY:
-			if ((n.nodeType == 2 /*Node.ATTRIBUTE_NODE*/ || n.nodeType == 1 /*Node.ELEMENT_NODE*/)) {
+			if (nType === 2 /*Node.ATTRIBUTE_NODE*/ || nType === 1 /*Node.ELEMENT_NODE*/) {
 				var ns = xpc.namespaceResolver.getNamespace(this.value, xpc.expressionContextNode);
 				if (ns == null) {
 					throw new Error("Cannot resolve QName " + this.value);
 				}
-				return ns == (n.namespaceURI || '');
+				return ns === (n.namespaceURI || '');
 			}
 			return false;
 		case NodeTest.NAMETESTQNAME:
-			if (n.nodeType == 2 /*Node.ATTRIBUTE_NODE*/
-					|| n.nodeType == 1 /*Node.ELEMENT_NODE*/
-					|| n.nodeType == XPathNamespace.XPATH_NAMESPACE_NODE) {
+			if (nType === 2 /*Node.ATTRIBUTE_NODE*/
+					|| nType === 1 /*Node.ELEMENT_NODE*/
+					|| nType === XPathNamespace.XPATH_NAMESPACE_NODE) {
 				var test = Utilities.resolveQName(this.value, xpc.namespaceResolver, xpc.expressionContextNode, false);
 				if (test[0] == null) {
 					throw new Error("Cannot resolve QName " + this.value);
@@ -2242,27 +2244,27 @@ NodeTest.prototype.matches = function(n, xpc) {
                 ];
 
 				if (xpc.caseInsensitive) {
-					return test[0] == node[0] && test[1].toLowerCase() == node[1].toLowerCase();
+					return test[0] === node[0] && test[1].toLowerCase() === node[1].toLowerCase();
 				}
                 
-				return test[0] == node[0] && test[1] == node[1];
+				return test[0] === node[0] && test[1] === node[1];
 			}
 			return false;
 		case NodeTest.COMMENT:
-			return n.nodeType == 8 /*Node.COMMENT_NODE*/;
+			return nType === 8 /*Node.COMMENT_NODE*/;
 		case NodeTest.TEXT:
-			return n.nodeType == 3 /*Node.TEXT_NODE*/ || n.nodeType == 4 /*Node.CDATA_SECTION_NODE*/;
+			return nType === 3 /*Node.TEXT_NODE*/ || nType == 4 /*Node.CDATA_SECTION_NODE*/;
 		case NodeTest.PI:
-			return n.nodeType == 7 /*Node.PROCESSING_INSTRUCTION_NODE*/
+			return nType === 7 /*Node.PROCESSING_INSTRUCTION_NODE*/
 				&& (this.value == null || n.nodeName == this.value);
 		case NodeTest.NODE:
-			return n.nodeType == 9 /*Node.DOCUMENT_NODE*/
-				|| n.nodeType == 1 /*Node.ELEMENT_NODE*/
-				|| n.nodeType == 2 /*Node.ATTRIBUTE_NODE*/
-				|| n.nodeType == 3 /*Node.TEXT_NODE*/
-				|| n.nodeType == 4 /*Node.CDATA_SECTION_NODE*/
-				|| n.nodeType == 8 /*Node.COMMENT_NODE*/
-				|| n.nodeType == 7 /*Node.PROCESSING_INSTRUCTION_NODE*/;
+			return nType === 9 /*Node.DOCUMENT_NODE*/
+				|| nType === 1 /*Node.ELEMENT_NODE*/
+				|| nType === 2 /*Node.ATTRIBUTE_NODE*/
+				|| nType === 3 /*Node.TEXT_NODE*/
+				|| nType === 4 /*Node.CDATA_SECTION_NODE*/
+				|| nType === 8 /*Node.COMMENT_NODE*/
+				|| nType === 7 /*Node.PROCESSING_INSTRUCTION_NODE*/;
 	}
 	return false;
 };
@@ -2794,10 +2796,29 @@ AVLTree.prototype.getDepthFromChildren = function() {
     }
 };
 
-AVLTree.prototype.order = function(n1, n2) {
+function nodeOrder(n1, n2) {
 	if (n1 === n2) {
 		return 0;
 	}
+
+	if (n1.compareDocumentPosition) {
+	    var cpos = n1.compareDocumentPosition(n2);
+
+        if (cpos & 0x01) {
+            return 0;
+        }
+        if (cpos & 0x0A) {
+            // n2 precedes or contains n1
+            return 1;
+        }
+        if (cpos & 0x14) {
+            // n2 follows or is contained by n1
+            return -1;
+        }
+
+	    return 0;
+	}
+
 	var d1 = 0,
 	    d2 = 0;
 	for (var m1 = n1; m1 != null; m1 = m1.parentNode) {
@@ -2806,12 +2827,14 @@ AVLTree.prototype.order = function(n1, n2) {
 	for (var m2 = n2; m2 != null; m2 = m2.parentNode) {
 		d2++;
 	}
+
+    // step up to same depth
 	if (d1 > d2) {
 		while (d1 > d2) {
 			n1 = n1.parentNode;
 			d1--;
 		}
-		if (n1 == n2) {
+		if (n1 === n2) {
 			return 1;
 		}
 	} else if (d2 > d1) {
@@ -2819,7 +2842,7 @@ AVLTree.prototype.order = function(n1, n2) {
 			n2 = n2.parentNode;
 			d2--;
 		}
-		if (n1 == n2) {
+		if (n1 === n2) {
 			return -1;
 		}
 	}
@@ -2827,6 +2850,7 @@ AVLTree.prototype.order = function(n1, n2) {
     var n1Par = n1.parentNode,
         n2Par = n2.parentNode;
 
+    // find common parent
 	while (n1Par !== n2Par) {
 		n1 = n1Par;
 		n2 = n2Par;
@@ -2834,25 +2858,29 @@ AVLTree.prototype.order = function(n1, n2) {
 	    n2Par = n2.parentNode;
 	}
 
-    var n1Prev = n1.previousSibling,
-        n2Prev = n2.previousSibling;
+	if (n1Par && n1Par.childNodes) {
+	    var cn = n1Par.childNodes,
+	        len = cn.length;
+        for (var i = 0; i < len; i += 1) {
+            var n = cn[i];
+            if (n === n1) {
+                return -1;
+            }
+            if (n === n2) {
+                return 1;
+            }
+        }
+    }
 
-	while (n1Prev && n2Prev) {
-		n1 = n1Prev;
-		n2 = n2Prev;
-		n1Prev = n1.previousSibling;
-	    n2Prev = n2.previousSibling;
-	}
-
-	return n1Prev ? 1 : -1;
-};
+    return 0;
+}
 
 AVLTree.prototype.add = function(n)  {
 	if (n === this.node) {
         return false;
     }
 
-	var o = this.order(n, this.node);
+	var o = nodeOrder(n, this.node);
 
     var ret = false;
     if (o == -1) {
