@@ -1694,7 +1694,7 @@ PathExpr.prototype.evaluate = function(c) {
 			}
 			return ns;
 		}
-		nodes = ns.toArray();
+		nodes = ns.toUnsortedArray();
 		if (this.filterPredicates != null) {
 			// apply each of the predicates in turn
 			for (var j = 0; j < this.filterPredicates.length; j++) {
@@ -2894,7 +2894,8 @@ function XNodeSet() {
 }
 
 XNodeSet.prototype.init = function() {
-	this.tree = null;
+    this.tree = null;
+	this.nodes = [];
 	this.size = 0;
 };
 
@@ -2927,11 +2928,11 @@ XNodeSet.prototype.numberValue = function() {
 };
 
 XNodeSet.prototype.bool = function() {
-	return new XBoolean(this.tree != null);
+	return new XBoolean(this.booleanValue());
 };
 
 XNodeSet.prototype.booleanValue = function() {
-	return this.tree != null;
+	return !!this.size;
 };
 
 XNodeSet.prototype.nodeset = function() {
@@ -2963,8 +2964,19 @@ XNodeSet.prototype.stringForNodeRec = function(n) {
 	return s;
 };
 
+XNodeSet.prototype.buildTree = function () {
+    if (!this.tree && this.nodes.length) {
+        this.tree = new AVLTree(this.nodes[0]);
+        for (var i = 1; i < this.nodes.length; i += 1) {
+            this.tree.add(this.nodes[i]);
+        }
+    }
+    
+    return this.tree;
+};
+
 XNodeSet.prototype.first = function() {
-	var p = this.tree;
+	var p = this.buildTree();
 	if (p == null) {
 		return null;
 	}
@@ -2975,27 +2987,29 @@ XNodeSet.prototype.first = function() {
 };
 
 XNodeSet.prototype.add = function(n) {
-    var added;
-    if (this.tree == null) {
-        this.tree = new AVLTree(n);
-        added = true;
-    } else {
-        added = this.tree.add(n);
+    for (var i = 0; i < this.nodes.length; i += 1) {
+        if (n === this.nodes[i]) {
+            return;
+        }
     }
-    if (added) {
-        this.size++;
-    }
+    
+    this.tree = null;
+    this.nodes.push(n);
+    this.size += 1;
 };
 
 XNodeSet.prototype.addArray = function(ns) {
-	for (var i = 0; i < ns.length; i++) {
+	for (var i = 0; i < ns.length; i += 1) {
 		this.add(ns[i]);
 	}
 };
 
+/**
+ * Returns an array of the node set's contents in document order
+ */
 XNodeSet.prototype.toArray = function() {
 	var a = [];
-	this.toArrayRec(this.tree, a);
+	this.toArrayRec(this.buildTree(), a);
 	return a;
 };
 
@@ -3007,8 +3021,15 @@ XNodeSet.prototype.toArrayRec = function(t, a) {
 	}
 };
 
+/**
+ * Returns an array of the node set's contents in arbitrary order
+ */
+XNodeSet.prototype.toUnsortedArray = function () {
+    return this.nodes.slice();
+};
+
 XNodeSet.prototype.compareWithString = function(r, o) {
-	var a = this.toArray();
+	var a = this.toUnsortedArray();
 	for (var i = 0; i < a.length; i++) {
 		var n = a[i];
 		var l = new XString(this.stringForNode(n));
@@ -3021,7 +3042,7 @@ XNodeSet.prototype.compareWithString = function(r, o) {
 };
 
 XNodeSet.prototype.compareWithNumber = function(r, o) {
-	var a = this.toArray();
+	var a = this.toUnsortedArray();
 	for (var i = 0; i < a.length; i++) {
 		var n = a[i];
 		var l = new XNumber(this.stringForNode(n));
@@ -3038,11 +3059,11 @@ XNodeSet.prototype.compareWithBoolean = function(r, o) {
 };
 
 XNodeSet.prototype.compareWithNodeSet = function(r, o) {
-	var a = this.toArray();
+	var a = this.toUnsortedArray();
 	for (var i = 0; i < a.length; i++) {
 		var n = a[i];
 		var l = new XString(this.stringForNode(n));
-		var b = r.toArray();
+		var b = r.toUnsortedArray();
 		for (var j = 0; j < b.length; j++) {
 			var n2 = b[j];
 			var r = new XString(this.stringForNode(n2));
@@ -3135,9 +3156,8 @@ XNodeSet.prototype.greaterthanorequal = function(r) {
 
 XNodeSet.prototype.union = function(r) {
 	var ns = new XNodeSet();
-	ns.tree = this.tree;
-	ns.size = this.size;
-	ns.addArray(r.toArray());
+    ns.addArray(this.toUnsortedArray());
+	ns.addArray(r.toUnsortedArray());
 	return ns;
 };
 
@@ -3659,7 +3679,7 @@ Functions.sum = function() {
 	if (arguments.length != 2 || !Utilities.instance_of((ns = arguments[1].evaluate(c)), XNodeSet)) {
 		throw new Error("Function sum expects (node-set)");
 	}
-	ns = ns.toArray();
+	ns = ns.toUnsortedArray();
 	var n = 0;
 	for (var i = 0; i < ns.length; i++) {
 		n += new XNumber(XNodeSet.prototype.stringForNode(ns[i])).numberValue();

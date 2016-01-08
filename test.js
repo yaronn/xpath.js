@@ -698,4 +698,23 @@ module.exports = {
          
         test.done();
     }
+    
+    ,"node set sorted and unsorted arrays": function (test) {
+        var doc = new dom().parseFromString('<book><character>Harry</character><character>Ron</character><character>Hermione</character></book>'),
+            path = xpath.parse("/*/*[3] | /*/*[2] | /*/*[1]")
+            nset = path.evaluateNodeSet({ node: doc }),
+            sorted = nset.toArray(),
+            unsorted = nset.toUnsortedArray();
+            
+        assert.equal(sorted.length, 3);
+        assert.equal(unsorted.length, 3);
+        
+        assert.equal(sorted[0].textContent, 'Harry');
+        assert.equal(sorted[1].textContent, 'Ron');
+        assert.equal(sorted[2].textContent, 'Hermione');
+        
+        assert.notEqual(sorted[0], unsorted[0], "first nodeset element equal");        
+        
+        test.done();
+    }
 }
