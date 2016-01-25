@@ -10,7 +10,11 @@
   },
   "dependencies": {},
   "devDependencies": {
-	  "nodeunit": ">=0.6.4"
+    "nodeunit": ">=0.6.4",
+    "xmldom": "^0.1.19"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/nodeunit test.js"
   },
   "repository": {
     "type": "git",
