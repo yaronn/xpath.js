@@ -102,11 +102,11 @@
  */
 
 // non-node wrapper
-if(typeof exports === 'undefined' ) {
-	xpath = {};
-}
+var xpath = (typeof exports === 'undefined') ? {} : exports;
+
 (function(exports) {
-	
+"use strict";
+    
 // XPathParser ///////////////////////////////////////////////////////////////
 
 XPathParser.prototype = new Object();
@@ -3366,7 +3366,7 @@ NamespaceResolver.prototype.getNamespace = function(prefix, n) {
 
 // Functions /////////////////////////////////////////////////////////////////
 
-Functions = new Object();
+var Functions = new Object();
 
 Functions.last = function() {
 	var c = arguments[0];
@@ -4674,4 +4674,4 @@ exports.select1 = function(e, doc) {
 };
 
 // end non-node wrapper
-})(typeof exports !== 'undefined' ? exports : xpath);
+})(xpath);
