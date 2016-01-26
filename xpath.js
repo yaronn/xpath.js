@@ -2974,6 +2974,9 @@ XNodeSet.prototype.stringForNode = function(n) {
 	if (n.nodeType == 1 /*Node.ELEMENT_NODE*/ || n.nodeType === 11 /*Node.DOCUMENT_FRAGMENT*/) {
 		return this.stringForNodeRec(n);
 	}
+    if (n.nodeType === 2 /* Node.ATTRIBUTE_NODE */) {
+        return n.value || n.nodeValue;
+    }
 	if (n.isNamespaceNode) {
 		return n.namespace;
 	}
@@ -3523,7 +3526,7 @@ Functions.contains = function() {
 	}
 	var s1 = arguments[1].evaluate(c).stringValue();
 	var s2 = arguments[2].evaluate(c).stringValue();
-	return new XBoolean(s1.indexOf(s2) != -1);
+	return new XBoolean(s1.indexOf(s2) !== -1);
 };
 
 Functions.substringBefore = function() {

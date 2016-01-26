@@ -717,4 +717,16 @@ module.exports = {
         
         test.done();
     }
+    
+    // https://github.com/goto100/xpath/issues/32
+    ,'supports contains() function on attributes': function (test) {
+        var doc = new dom().parseFromString("<books><book title='Harry Potter and the Philosopher\"s Stone' /><book title='Harry Potter and the Chamber of Secrets' /></books>"),
+            andTheBooks = xpath.select("/books/book[contains(@title, ' ')]", doc),
+            secretBooks = xpath.select("/books/book[contains(@title, 'Secrets')]", doc);
+            
+        assert.equal(andTheBooks.length, 2);
+        assert.equal(secretBooks.length, 1);
+            
+        test.done();
+    }
 }
