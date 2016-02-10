@@ -106,7 +106,7 @@ var xpath = (typeof exports === 'undefined') ? {} : exports;
 
 (function(exports) {
 "use strict";
-    
+
 // XPathParser ///////////////////////////////////////////////////////////////
 
 XPathParser.prototype = new Object();
@@ -2246,7 +2246,7 @@ NodeTest.prototype.matches = function (n, xpc) {
 				if (xpc.caseInsensitive) {
 					return test[0] === node[0] && test[1].toLowerCase() === node[1].toLowerCase();
 				}
-                
+
 				return test[0] === node[0] && test[1] === node[1];
 			}
 			return false;
@@ -2299,7 +2299,7 @@ VariableReference.prototype.toString = function() {
 
 VariableReference.prototype.evaluate = function(c) {
     var parts = Utilities.resolveQName(this.variable, c.namespaceResolver, c.contextNode, false);
-    
+
     if (parts[0] == null) {
         throw new Error("Cannot resolve QName " + fn);
     }
@@ -3002,7 +3002,7 @@ XNodeSet.prototype.buildTree = function () {
             this.tree.add(this.nodes[i]);
         }
     }
-    
+
     return this.tree;
 };
 
@@ -3023,7 +3023,7 @@ XNodeSet.prototype.add = function(n) {
             return;
         }
     }
-    
+
     this.tree = null;
     this.nodes.push(n);
     this.size += 1;
@@ -3353,10 +3353,10 @@ NamespaceResolver.prototype.getNamespace = function(prefix, n) {
 		var nnm = n.attributes;
 		for (var i = 0; i < nnm.length; i++) {
 			var a = nnm.item(i);
-			var aname = a.nodeName;
-			if (aname == "xmlns" && prefix == ""
-					|| aname == "xmlns:" + prefix) {
-				return String(a.nodeValue);
+			var aname = a.name || a.nodeName;
+			if ((aname === "xmlns" && prefix === "")
+					|| aname === "xmlns:" + prefix) {
+				return String(a.value || a.nodeValue);
 			}
 		}
 		n = n.parentNode;
@@ -3476,8 +3476,10 @@ Functions.name = function() {
 	if (n == null) {
 		return new XString("");
 	}
-	if (n.nodeType == 1 /*Node.ELEMENT_NODE*/ || n.nodeType == 2 /*Node.ATTRIBUTE_NODE*/) {
+	if (n.nodeType == 1 /*Node.ELEMENT_NODE*/) {
 		return new XString(n.nodeName);
+	} else if (n.nodeType == 2 /*Node.ATTRIBUTE_NODE*/) {
+		return new XString(n.name || n.nodeName);
 	} else if (n.nodeType === 7 /*Node.PROCESSING_INSTRUCTION_NODE*/) {
 	    return new XString(n.target || n.nodeName);
 	} else if (n.localName == null) {
@@ -4189,16 +4191,16 @@ var XPathException = (function () {
         }
         return null;
     }
-    
+
     function XPathException(code, error, message) {
         var err = Error.call(this, getMessage(code, error) || message);
 
         err.code = code;
         err.exception = error;
-	
+
         return err;
     }
-    
+
     XPathException.prototype = Object.create(Error.prototype);
     XPathException.prototype.constructor = XPathException;
     XPathException.superclass = Error;
@@ -4206,14 +4208,14 @@ var XPathException = (function () {
     XPathException.prototype.toString = function() {
         return this.message;
     };
-    
+
     XPathException.fromMessage = function(message, error) {
         return new XPathException(null, error, message);
     };
 
     XPathException.INVALID_EXPRESSION_ERR = 51;
     XPathException.TYPE_ERR = 52;
-    
+
     return XPathException;
 })();
 
@@ -4402,21 +4404,21 @@ installDOM3XPathSupport(exports, new XPathParser());
     var defaultNSResolver = new NamespaceResolver();
     var defaultFunctionResolver = new FunctionResolver();
     var defaultVariableResolver = new VariableResolver();
-    
+
     function makeNSResolverFromFunction(func) {
         return {
             getNamespace: function (prefix, node) {
                 var ns = func(prefix, node);
-                 
+
                 return ns || defaultNSResolver.getNamespace(prefix, node);
             }
         };
     }
-    
+
     function makeNSResolverFromObject(obj) {
         return makeNSResolverFromFunction(obj.getNamespace.bind(obj));
     }
-    
+
     function makeNSResolverFromMap(map) {
         return makeNSResolverFromFunction(function (prefix) {
             return map[prefix];
@@ -4427,19 +4429,19 @@ installDOM3XPathSupport(exports, new XPathParser());
         if (resolver && typeof resolver.getNamespace === "function") {
             return makeNSResolverFromObject(resolver);
         }
-        
+
         if (typeof resolver === "function") {
             return makeNSResolverFromFunction(resolver);
         }
-        
+
         // assume prefix -> uri mapping
         if (typeof resolver === "object") {
             return makeNSResolverFromMap(resolver);
         }
-        
+
         return defaultNSResolver;
     }
-    
+
     /** Converts native JavaScript types to their XPath library equivalent */
     function convertValue(value) {
         if (value === null ||
@@ -4450,19 +4452,19 @@ installDOM3XPathSupport(exports, new XPathParser());
             value instanceof XNodeSet) {
             return value;
         }
-        
+
         switch (typeof value) {
             case "string": return new XString(value);
             case "boolean": return new XBoolean(value);
             case "number": return new XNumber(value);
         }
-        
+
         // assume node(s)
         var ns = new XNodeSet();
         ns.addArray([].concat(value));
         return ns;
     }
-    
+
     function makeEvaluator(func) {
         return function (context) {
             var args = Array.prototype.slice.call(arguments, 1).map(function (arg) {
@@ -4470,9 +4472,9 @@ installDOM3XPathSupport(exports, new XPathParser());
             });
             var result = func.apply(this, [].concat(context, args));
             return convertValue(result);
-        };        
+        };
     }
-    
+
     function makeFunctionResolverFromFunction(func) {
         return {
             getFunction: function (name, namespace) {
@@ -4484,34 +4486,34 @@ installDOM3XPathSupport(exports, new XPathParser());
             }
         };
     }
-    
+
     function makeFunctionResolverFromObject(obj) {
         return makeFunctionResolverFromFunction(obj.getFunction.bind(obj));
     }
-    
+
     function makeFunctionResolverFromMap(map) {
         return makeFunctionResolverFromFunction(function (name) {
             return map[name];
         });
     }
-  
+
     function makeFunctionResolver(resolver) {
         if (resolver && typeof resolver.getFunction === "function") {
             return makeFunctionResolverFromObject(resolver);
         }
-        
+
         if (typeof resolver === "function") {
             return makeFunctionResolverFromFunction(resolver);
         }
-        
+
         // assume map
         if (typeof resolver === "object") {
             return makeFunctionResolverFromMap(resolver);
         }
-        
+
         return defaultFunctionResolver;
     }
-    
+
     function makeVariableResolverFromFunction(func) {
         return {
             getVariable: function (name, namespace) {
@@ -4520,17 +4522,17 @@ installDOM3XPathSupport(exports, new XPathParser());
             }
         };
     }
-        
+
     function makeVariableResolver(resolver) {
         if (resolver) {
             if (typeof resolver.getVariable === "function") {
                 return makeVariableResolverFromFunction(resolver.getVariable.bind(resolver));
             }
-            
+
             if (typeof resolver === "function") {
                 return makeVariableResolverFromFunction(resolver);
             }
-            
+
             // assume map
             if (typeof resolver === "object") {
                 return makeVariableResolverFromFunction(function (name) {
@@ -4538,10 +4540,10 @@ installDOM3XPathSupport(exports, new XPathParser());
                 });
             }
         }
-        
+
         return defaultVariableResolver;
     }
-    
+
     function makeContext(options) {
         var context = new XPathContext();
 
@@ -4553,41 +4555,41 @@ installDOM3XPathSupport(exports, new XPathParser());
         } else {
             context.namespaceResolver = defaultNSResolver;
         }
-        
+
         return context;
     }
-    
+
     function evaluate(parsedExpression, options) {
         var context = makeContext(options);
-        
+
         return parsedExpression.evaluate(context);
     }
-    
+
     var evaluatorPrototype = {
         evaluate: function (options) {
             return evaluate(this.expression, options);
         }
-        
+
         ,evaluateNumber: function (options) {
             return this.evaluate(options).numberValue();
         }
-        
+
         ,evaluateString: function (options) {
             return this.evaluate(options).stringValue();
         }
-        
+
         ,evaluateBoolean: function (options) {
             return this.evaluate(options).booleanValue();
         }
-        
+
         ,evaluateNodeSet: function (options) {
             return this.evaluate(options).nodeset();
         }
-        
+
         ,select: function (options) {
             return this.evaluateNodeSet(options).toArray()
         }
-        
+
         ,select1: function (options) {
             return this.select(options)[0];
         }
@@ -4595,7 +4597,7 @@ installDOM3XPathSupport(exports, new XPathParser());
 
     function parse(xpath) {
         var parsed = parser.parse(xpath);
-        
+
         return Object.create(evaluatorPrototype, {
             expression: {
                 value: parsed
