@@ -151,6 +151,29 @@ module.exports = {
 		test.done();
 	},
 
+	'select attribute multiple by tag': function (test) {
+		var xml = '<author name="J. K. Rowling"></author><author name="Saeed Akl"></author>';
+		var doc = new dom().parseFromString(xml);
+
+		var authors = xpath.select('/author', doc);
+		assert.equal(2, authors.length);
+
+		test.done();
+	},
+
+	'select attribute multiple by attribute': function (test) {
+		var xml = '<author name="J. K. Rowling"></author><author name="Saeed Akl"></author>';
+		var doc = new dom().parseFromString(xml);
+
+		var authors = xpath.select('/author/@name', doc);
+    // The following works
+		//var authors = xpath.select('/author', doc);
+    //authors=authors.map(function(x) { return x.getAttribute("name"); });
+		assert.equal(2, authors.length);
+
+		test.done();
+	},
+
 	'XPathException acts like Error': function (test) {
 		try {
 		    xpath.evaluate('1', null, null, null);
