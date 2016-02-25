@@ -632,13 +632,17 @@ module.exports = {
     }
     
     ,"string value for CDATA sections": function (test) {
-        var xml = "<MediaFile><![CDATA[https://server]]></MediaFile>",
+        var xml = "<people><person><![CDATA[Harry Potter]]></person><person>Ron <![CDATA[Weasley]]></person></people>",
             doc = new dom().parseFromString(xml),
-            file1 = xpath.parse("//MediaFile/text()").evaluateString({ node: doc }),
-            file2 = xpath.select("string(//MediaFile/text())", doc);
+            person1 = xpath.parse("/people/person").evaluateString({ node: doc }),
+            person2 = xpath.parse("/people/person/text()").evaluateString({ node: doc }),
+            person3 = xpath.select("string(/people/person/text())", doc);
+            person4 = xpath.parse("/people/person[2]").evaluateString({ node: doc });
 
-        assert.equal(file1, 'https://server');
-        assert.equal(file2, 'https://server');
+        assert.equal(person1, 'Harry Potter');
+        assert.equal(person2, 'Harry Potter');
+        assert.equal(person3, 'Harry Potter');
+        assert.equal(person4, 'Ron Weasley');
         
         test.done();
     }

@@ -2969,10 +2969,10 @@ XNodeSet.prototype.nodeset = function() {
 
 XNodeSet.prototype.stringForNode = function(n) {
 	if (n.nodeType == 9 /*Node.DOCUMENT_NODE*/) {
-		n = n.documentElement;
+		return this.stringForNode(n.documentElement);
 	}
 	if (n.nodeType == 1 /*Node.ELEMENT_NODE*/ || n.nodeType === 11 /*Node.DOCUMENT_FRAGMENT*/) {
-		return this.stringForNodeRec(n);
+		return this.stringForContainerNode(n);
 	}
     if (n.nodeType === 2 /* Node.ATTRIBUTE_NODE */) {
         return n.value || n.nodeValue;
@@ -2983,14 +2983,10 @@ XNodeSet.prototype.stringForNode = function(n) {
 	return n.nodeValue;
 };
 
-XNodeSet.prototype.stringForNodeRec = function(n) {
+XNodeSet.prototype.stringForContainerNode = function(n) {
 	var s = "";
 	for (var n2 = n.firstChild; n2 != null; n2 = n2.nextSibling) {
-		if (n2.nodeType == 3 /*Node.TEXT_NODE*/) {
-			s += n2.nodeValue;
-		} else if (n2.nodeType == 1 /*Node.ELEMENT_NODE*/) {
-			s += this.stringForNodeRec(n2);
-		}
+        s += this.stringForNode(n2);
 	}
 	return s;
 };
