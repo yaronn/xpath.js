@@ -1,9 +1,14 @@
 ## xpath
-DOM 3 Xpath implemention and helper for node.js.
+DOM 3 XPath 1.0 implemention and helper for JavaScript, with node.js support.
 
 Originally written by Cameron McCormack ([blog](http://mcc.id.au/xpathjs)).
 
-Thanks to Yaron Naveh ([blog](http://webservices20.blogspot.com/)).
+Additional contributions from  
+Yaron Naveh ([blog](http://webservices20.blogspot.com/))  
+goto100  
+Thomas Weinert  
+Jimmy Rishe  
+and [others](https://github.com/goto100/xpath/graphs/contributors)
 
 ## Install
 Install with [npm](http://github.com/isaacs/npm):
