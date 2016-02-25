@@ -149,32 +149,21 @@ module.exports = {
 		assert.equal('J. K. Rowling', author);
 
 		test.done();
-	},
+	}
 
-	'select attribute multiple by tag': function (test) {
-		var xml = '<author name="J. K. Rowling"></author><author name="Saeed Akl"></author>';
+    // https://github.com/goto100/xpath/issues/37
+	,'select multiple attributes': function (test) {
+		var xml = '<authors><author name="J. K. Rowling" /><author name="Saeed Akl" /></authors>';
 		var doc = new dom().parseFromString(xml);
 
-		var authors = xpath.select('/author', doc);
+		var authors = xpath.select('/authors/author/@name', doc);
 		assert.equal(2, authors.length);
+        assert.equal('J. K. Rowling', authors[0].value);
 
 		test.done();
-	},
+	}
 
-	'select attribute multiple by attribute': function (test) {
-		var xml = '<author name="J. K. Rowling"></author><author name="Saeed Akl"></author>';
-		var doc = new dom().parseFromString(xml);
-
-		var authors = xpath.select('/author/@name', doc);
-    // The following works
-		//var authors = xpath.select('/author', doc);
-    //authors=authors.map(function(x) { return x.getAttribute("name"); });
-		assert.equal(2, authors.length);
-
-		test.done();
-	},
-
-	'XPathException acts like Error': function (test) {
+	,'XPathException acts like Error': function (test) {
 		try {
 		    xpath.evaluate('1', null, null, null);
 			assert.fail(null, null, 'evaluate() should throw exception');

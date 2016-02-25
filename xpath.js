@@ -2805,7 +2805,8 @@ function nodeOrder(n1, n2) {
 	    var cpos = n1.compareDocumentPosition(n2);
 
         if (cpos & 0x01) {
-            return 0;
+            // not in the same document; return an arbitrary result (is there a better way to do this)
+            return 1;
         }
         if (cpos & 0x0A) {
             // n2 precedes or contains n1
@@ -2821,17 +2822,17 @@ function nodeOrder(n1, n2) {
 
 	var d1 = 0,
 	    d2 = 0;
-	for (var m1 = n1; m1 != null; m1 = m1.parentNode) {
+	for (var m1 = n1; m1 != null; m1 = m1.parentNode || m1.ownerElement) {
 		d1++;
 	}
-	for (var m2 = n2; m2 != null; m2 = m2.parentNode) {
+	for (var m2 = n2; m2 != null; m2 = m2.parentNode || m2.ownerElement) {
 		d2++;
 	}
 
     // step up to same depth
 	if (d1 > d2) {
 		while (d1 > d2) {
-			n1 = n1.parentNode;
+			n1 = n1.parentNode || n1.ownerElement;
 			d1--;
 		}
 		if (n1 === n2) {
@@ -2839,7 +2840,7 @@ function nodeOrder(n1, n2) {
 		}
 	} else if (d2 > d1) {
 		while (d2 > d1) {
-			n2 = n2.parentNode;
+			n2 = n2.parentNode || n2.ownerElement;
 			d2--;
 		}
 		if (n1 === n2) {
@@ -2847,19 +2848,29 @@ function nodeOrder(n1, n2) {
 		}
 	}
 
-    var n1Par = n1.parentNode,
-        n2Par = n2.parentNode;
+    var n1Par = n1.parentNode || n1.ownerElement,
+        n2Par = n2.parentNode || n2.ownerElement;
 
     // find common parent
 	while (n1Par !== n2Par) {
 		n1 = n1Par;
 		n2 = n2Par;
-		n1Par = n1.parentNode;
-	    n2Par = n2.parentNode;
+		n1Par = n1.parentNode || n1.ownerElement;
+	    n2Par = n2.parentNode || n2.ownerElement;
 	}
-
-	if (n1Par && n1Par.childNodes) {
-	    var cn = n1Par.childNodes,
+    
+    var n1isAttr = Utilities.isAttribute(n1);
+    var n2isAttr = Utilities.isAttribute(n2);
+    
+    if (n1isAttr && !n2isAttr) {
+        return -1;
+    }
+    if (!n1isAttr && n2isAttr) {
+        return 1;
+    }
+    
+    if(n1Par) {
+	    var cn = n1isAttr ? n1Par.attributes : n1Par.childNodes,
 	        len = cn.length;
         for (var i = 0; i < len; i += 1) {
             var n = cn[i];
@@ -2870,9 +2881,9 @@ function nodeOrder(n1, n2) {
                 return 1;
             }
         }
-    }
-
-    return 0;
+    }        
+    
+    throw new Error('Unexpected: could not determine node order');
 }
 
 AVLTree.prototype.add = function(n)  {
@@ -3743,6 +3754,10 @@ Functions.round = function() {
 // Utilities /////////////////////////////////////////////////////////////////
 
 var Utilities = new Object();
+
+Utilities.isAttribute = function (val) {
+    return val && (val.nodeType === 2 || val.ownerElement);
+}
 
 Utilities.splitQName = function(qn) {
 	var i = qn.indexOf(":");
