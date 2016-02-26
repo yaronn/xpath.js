@@ -659,6 +659,28 @@ module.exports = {
         test.done();
     }
     
+    ,"string value of various node types": function (test) {
+        var xml = "<book xmlns:hp='http://harry'><!-- This describes the Harry Potter Book --><?author name='J.K. Rowling' ?><title lang='en'><![CDATA[Harry Potter & the Philosopher's Stone]]></title><character>Harry Potter</character></book>",
+            doc = new dom().parseFromString(xml),
+            allText = xpath.parse('.').evaluateString({ node: doc }),
+            ns = xpath.parse('*/namespace::*[name() = "hp"]').evaluateString({ node: doc }),
+            title = xpath.parse('*/title').evaluateString({ node: doc }),
+            child = xpath.parse('*/*').evaluateString({ node: doc }),
+            titleLang = xpath.parse('*/*/@lang').evaluateString({ node: doc }),
+            pi = xpath.parse('*/processing-instruction()').evaluateString({ node: doc }),
+            comment = xpath.parse('*/comment()').evaluateString({ node: doc });
+    
+        assert.equal(allText, "Harry Potter & the Philosopher's StoneHarry Potter");
+        assert.equal(ns, 'http://harry');
+        assert.equal(title, "Harry Potter & the Philosopher's Stone");
+        assert.equal(child, "Harry Potter & the Philosopher's Stone");
+        assert.equal(titleLang, 'en');
+        assert.equal(pi.trim(), "name='J.K. Rowling'");
+        assert.equal(comment, ' This describes the Harry Potter Book ');
+        
+        test.done();
+    }
+    
     ,"exposes custom types": function (test) {
         assert.ok(xpath.XPath, "xpath.XPath");
         assert.ok(xpath.XPathParser, "xpath.XPathParser");

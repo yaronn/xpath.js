@@ -2979,10 +2979,9 @@ XNodeSet.prototype.nodeset = function() {
 };
 
 XNodeSet.prototype.stringForNode = function(n) {
-	if (n.nodeType == 9 /*Node.DOCUMENT_NODE*/) {
-		return this.stringForNode(n.documentElement);
-	}
-	if (n.nodeType == 1 /*Node.ELEMENT_NODE*/ || n.nodeType === 11 /*Node.DOCUMENT_FRAGMENT*/) {
+	if (n.nodeType == 9   /*Node.DOCUMENT_NODE*/ || 
+        n.nodeType == 1   /*Node.ELEMENT_NODE */ || 
+        n.nodeType === 11 /*Node.DOCUMENT_FRAGMENT*/) {
 		return this.stringForContainerNode(n);
 	}
     if (n.nodeType === 2 /* Node.ATTRIBUTE_NODE */) {
@@ -2997,7 +2996,11 @@ XNodeSet.prototype.stringForNode = function(n) {
 XNodeSet.prototype.stringForContainerNode = function(n) {
 	var s = "";
 	for (var n2 = n.firstChild; n2 != null; n2 = n2.nextSibling) {
-        s += this.stringForNode(n2);
+        var nt = n2.nodeType;
+        //  Element,    Text,       CDATA,      Document,   Document Fragment
+        if (nt === 1 || nt === 3 || nt === 4 || nt === 9 || nt === 11) {
+            s += this.stringForNode(n2);
+        }
 	}
 	return s;
 };
