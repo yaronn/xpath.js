@@ -160,6 +160,16 @@ module.exports = {
 		assert.equal(2, authors.length);
         assert.equal('J. K. Rowling', authors[0].value);
 
+        // https://github.com/goto100/xpath/issues/41
+        doc = new dom().parseFromString('<chapters><chapter v="1"/><chapter v="2"/><chapter v="3"/></chapters>');
+        var nodes = xpath.select("/chapters/chapter/@v", doc);
+	    var values = nodes.map(function(n) { return n.value; });
+
+        assert.equal(3, values.length);
+        assert.equal("1", values[0]);
+        assert.equal("2", values[1]);
+        assert.equal("3", values[2]);
+
 		test.done();
 	}
 
