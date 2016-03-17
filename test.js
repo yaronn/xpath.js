@@ -766,6 +766,30 @@ module.exports = {
         test.done();
     }
     
+    ,'meaningful error for invalid function': function(test) {
+        var path = xpath.parse('invalidFunc()');
+
+        assert.throws(function () {
+            path.evaluateString();
+        }, function (err) {
+            return err.message.indexOf('invalidFunc') !== -1;
+        });
+        
+        var path2 = xpath.parse('funcs:invalidFunc()');
+        
+        assert.throws(function () {
+            path2.evaluateString({
+                namespaces: {
+                    funcs: 'myfunctions'
+                }
+            });
+        }, function (err) {
+            return err.message.indexOf('invalidFunc') !== -1;
+        });
+
+        test.done();
+    }
+    
     // https://github.com/goto100/xpath/issues/32
     ,'supports contains() function on attributes': function (test) {
         var doc = new dom().parseFromString("<books><book title='Harry Potter and the Philosopher\"s Stone' /><book title='Harry Potter and the Chamber of Secrets' /></books>"),

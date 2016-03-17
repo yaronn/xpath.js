@@ -2342,7 +2342,7 @@ FunctionCall.prototype.evaluate = function(c) {
     var f = FunctionResolver.getFunctionFromContext(this.functionName, c);
 
     if (!f) {
-		throw new Error("Unknown function " + fn);
+		throw new Error("Unknown function " + this.functionName);
 	}
 
     var a = [c].concat(this.arguments);
