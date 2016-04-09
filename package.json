@@ -1,13 +1,21 @@
 {
   "name": "xpath",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "DOM 3 Xpath implemention and helper for node.js.",
   "engines": {
     "node": ">=0.6.0"
   },
   "author": {
-    "name": "goto100"
+    "name": "Cameron McCormac"
   },
+  "contributors": [
+    {
+      "name": "goto100"
+    },
+    {
+      "name": "James Rishe"
+    }
+  ],
   "dependencies": {},
   "devDependencies": {
     "nodeunit": ">=0.6.4",
