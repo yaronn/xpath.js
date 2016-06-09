@@ -37,13 +37,13 @@ console.log("node: " + nodes[0].toString())
     title: Harry Potter
     Node: <title>Harry Potter</title>
 
-## Get text values directly
+## Evaluate string values directly:
 `````javascript
-var xml = "<book><title>Harry Potter</title></book>"
-var doc = new dom().parseFromString(xml)
-var title = xpath.select("//title/text()", doc).toString()
+var xml = "<book><title>Harry Potter</title></book>";
+var doc = new dom().parseFromString(xml);
+var title = xpath.select("string(//title)", doc);
 
-console.log(title)
+console.log(title);
 `````
 ➡
 
