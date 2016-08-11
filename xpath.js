@@ -3100,20 +3100,18 @@ XNodeSet.prototype.compareWithBoolean = function(r, o) {
 };
 
 XNodeSet.prototype.compareWithNodeSet = function(r, o) {
-	var a = this.toUnsortedArray();
-	for (var i = 0; i < a.length; i++) {
-		var n = a[i];
-		var l = new XString(this.stringForNode(n));
-		var b = r.toUnsortedArray();
-		for (var j = 0; j < b.length; j++) {
-			var n2 = b[j];
-			var r = new XString(this.stringForNode(n2));
-			var res = o(l, r);
-			if (res.booleanValue()) {
-				return res;
-			}
+	var arr = this.toUnsortedArray();
+	var oInvert = function (lop, rop) { return o(rop, lop); };
+	
+	for (var i = 0; i < arr.length; i++) {
+		var l = new XString(this.stringForNode(arr[i]));
+
+		var res = r.compareWithString(l, oInvert);
+		if (res.booleanValue()) {
+			return res;
 		}
 	}
+	
 	return new XBoolean(false);
 };
 

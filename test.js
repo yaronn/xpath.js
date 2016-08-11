@@ -801,4 +801,47 @@ module.exports = {
             
         test.done();
     }
+	
+	,'compare multiple nodes to multiple nodes (equals)': function (test) {
+		var xml = '<school><houses>' +
+			'<house name="Gryffindor"><student>Harry</student><student>Hermione</student></house>' +
+			'<house name="Slytherin"><student>Draco</student><student>Crabbe</student></house>' +
+			'<house name="Ravenclaw"><student>Luna</student><student>Cho</student></house>' +
+			'</houses>' +
+			'<honorStudents><student>Hermione</student><student>Luna</student></honorStudents></school>';
+
+		var doc = new dom().parseFromString(xml);
+		var houses = xpath.parse('/school/houses/house[student = /school/honorStudents/student]').select({ node: doc });
+
+		assert.equal(houses.length, 2);
+
+		var houseNames = houses.map(function (node) { return node.getAttribute('name'); }).sort();
+
+		assert.equal(houseNames[0], 'Gryffindor');
+		assert.equal(houseNames[1], 'Ravenclaw');
+		
+		test.done();
+	}
+
+	,'compare multiple nodes to multiple nodes (gte)': function (test) {
+		var xml = '<school><houses>' +
+			'<house name="Gryffindor"><student level="5">Harry</student><student level="9">Hermione</student></house>' +
+			'<house name="Slytherin"><student level="1">Goyle</student><student level="1">Crabbe</student></house>' +
+			'<house name="Ravenclaw"><student level="4">Luna</student><student level="3">Cho</student></house>' +
+			'</houses>' +
+			'<courses><course minLevel="9">DADA</course><course minLevel="4">Charms</course></courses>' +
+			'</school>';
+
+		var doc = new dom().parseFromString(xml);
+		var houses = xpath.parse('/school/houses/house[student/@level >= /school/courses/course/@minLevel]').select({ node: doc });
+
+		assert.equal(houses.length, 2);
+
+		var houseNames = houses.map(function (node) { return node.getAttribute('name'); }).sort();
+
+		assert.equal(houseNames[0], 'Gryffindor');
+		assert.equal(houseNames[1], 'Ravenclaw');
+		
+		test.done();
+	}
 }
