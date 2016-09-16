@@ -19,6 +19,9 @@ xpath is xml engine agnostic but I recommend to use [xmldom](https://github.com/
 
     npm install xmldom
 
+## API Documentation
+
+Can be found [here](https://github.com/goto100/xpath/blob/master/docs/xpath%20methods.md). See below for example usage.
 
 ## Your first xpath:
 `````javascript
