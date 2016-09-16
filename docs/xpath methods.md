@@ -32,4 +32,4 @@ var result = expr('/bk:books/bk:book[@name = "Harry Potter and the Half-Blood Pr
 
 #### xpath.select1(expression[, node])
 
-Alias for `xpath.select(expression, node, true)`. Selects a single node or value.
+Alias for [`xpath.select(expression, node, true)`](#xpathselectexpression-node-single). Selects a single node or value.
