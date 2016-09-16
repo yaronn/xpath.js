@@ -19,9 +19,9 @@ Evaluates an XPath expression and returns the result. The return value is determ
 
 #### xpath.useNamespaces(mappings)
 
-Produces a function with the signature func(expression, node) that evaluates the provided xpath expression with the XML namespace definitions provided in `mapppings`.
+Produces a function with the signature `func(expression, node)` that evaluates the provided xpath expression with the XML namespace definitions provided in `mapppings`.
 
-`mapping` should be an object with namespace prefixes as its property names and namespace URIs as its property values.
+`mappings` should be an object with namespace prefixes as its property names and namespace URIs as its property values.
 
 Example usage:
 
