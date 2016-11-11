@@ -40,6 +40,35 @@ console.log("Node: " + nodes[0].toString())
     title: Harry Potter
     Node: <title>Harry Potter</title>
 
+### Alternatively
+
+Using the same interface you have on modern browsers ([MDN])
+
+`````javascript
+var node = null;
+var xml = "<book author='J. K. Rowling'><title>Harry Potter</title></book>"
+var doc = new dom().parseFromString(xml)
+var result = xpath.evaluate(
+    "/book/title",            // xpathExpression
+    doc,                        // contextNode
+    null,                       // namespaceResolver
+    xpath.XPathResult.ANY_TYPE, // resultType
+    null                        // result
+)
+
+node = result.iterateNext();
+while (node) {
+    console.log(node.localName + ": " + node.firstChild.data);
+    console.log("Node: " + node.toString());
+
+    node = result.iterateNext();
+}
+`````
+➡
+
+    title: Harry Potter
+    Node: <title>Harry Potter</title>
+
 ## Evaluate string values directly:
 `````javascript
 var xml = "<book><title>Harry Potter</title></book>";
@@ -97,3 +126,5 @@ console.log(author)
 ➡
 
     J. K. Rowling
+
+[MDN]: https://developer.mozilla.org/en/docs/Web/API/Document/evaluate
