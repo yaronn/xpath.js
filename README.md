@@ -19,6 +19,9 @@ xpath is xml engine agnostic but I recommend to use [xmldom](https://github.com/
 
     npm install xmldom
 
+## API Documentation
+
+Can be found [here](https://github.com/goto100/xpath/blob/master/docs/xpath%20methods.md). See below for example usage.
 
 ## Your first xpath:
 `````javascript
@@ -31,6 +34,35 @@ var nodes = xpath.select("//title", doc)
 
 console.log(nodes[0].localName + ": " + nodes[0].firstChild.data)
 console.log("Node: " + nodes[0].toString())
+`````
+➡
+
+    title: Harry Potter
+    Node: <title>Harry Potter</title>
+
+### Alternatively
+
+Using the same interface you have on modern browsers ([MDN])
+
+`````javascript
+var node = null;
+var xml = "<book author='J. K. Rowling'><title>Harry Potter</title></book>"
+var doc = new dom().parseFromString(xml)
+var result = xpath.evaluate(
+    "/book/title",            // xpathExpression
+    doc,                        // contextNode
+    null,                       // namespaceResolver
+    xpath.XPathResult.ANY_TYPE, // resultType
+    null                        // result
+)
+
+node = result.iterateNext();
+while (node) {
+    console.log(node.localName + ": " + node.firstChild.data);
+    console.log("Node: " + node.toString());
+
+    node = result.iterateNext();
+}
 `````
 ➡
 
@@ -94,3 +126,5 @@ console.log(author)
 ➡
 
     J. K. Rowling
+
+[MDN]: https://developer.mozilla.org/en/docs/Web/API/Document/evaluate
