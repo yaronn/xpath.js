@@ -2478,8 +2478,43 @@ XNumber.prototype.parse = function(s) {
     return this.numberFormat.test(s) ? parseFloat(s) : Number.NaN;
 };
 
+function padSmallNumber(numberStr) {
+	var parts = numberStr.split('e-');
+	var base = parts[0].replace('.', '');
+	var exponent = Number(parts[1]);
+	
+	for (var i = 0; i < exponent - 1; i += 1) {
+		base = '0' + base;
+	}
+	
+	return '0.' + base;
+}
+
+function padLargeNumber(numberStr) {
+	var parts = numberStr.split('e');
+	var base = parts[0].replace('.', '');
+	var exponent = Number(parts[1]);
+	var zerosToAppend = exponent + 1 - base.length;
+	
+	for (var i = 0; i < zerosToAppend; i += 1){
+		base += '0';
+	}
+	
+	return base;
+}
+
 XNumber.prototype.toString = function() {
-	return this.num;
+	var strValue = this.num.toString();
+
+	if (strValue.indexOf('e-') !== -1) {
+		return padSmallNumber(strValue);
+	}
+    
+	if (strValue.indexOf('e') !== -1) {
+		return padLargeNumber(strValue);
+	}
+	
+	return strValue;
 };
 
 XNumber.prototype.evaluate = function(c) {
@@ -2487,7 +2522,9 @@ XNumber.prototype.evaluate = function(c) {
 };
 
 XNumber.prototype.string = function() {
-	return new XString(this.num);
+	
+	
+	return new XString(this.toString());
 };
 
 XNumber.prototype.number = function() {

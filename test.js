@@ -259,9 +259,16 @@ module.exports = {
 		assert.ok(Number.isNaN(xpath.select('number("+33")')), 'number("+33")');
 		
 		test.done();
-	},	
+	}
 	
-	'local-name() and name() of processing instruction': function (test) {
+	,'correct number to string conversion': function (test) {
+		assert.equal('0.0000000000000000000000005250000000000001', xpath.parse('0.525 div 1000000 div 1000000 div 1000000 div 1000000').evaluateString());
+		assert.equal('525000000000000000000000', xpath.parse('0.525 * 1000000 * 1000000 * 1000000 * 1000000').evaluateString());
+		
+		test.done();
+	}
+	
+	,'local-name() and name() of processing instruction': function (test) {
 	    var xml = '<?book-record added="2015-01-16" author="J.K. Rowling" ?><book>Harry Potter</book>';
 		var doc = new dom().parseFromString(xml);
 		var expectedName = 'book-record';
@@ -844,4 +851,5 @@ module.exports = {
 		
 		test.done();
 	}
+	
 }
