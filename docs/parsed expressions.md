@@ -8,7 +8,7 @@ This also provides access to additional features such as the use of variables an
 
 #### xpath.parse(expression)
 
-Parses the specified XPath expression and returns an `XPathEvaluator`.
+Parses the specified XPath expression and returns an `XPathEvaluator`. See the [documentation page](XPathEvaluator.md) for API details.
 
 `expression` should be a string.
 
