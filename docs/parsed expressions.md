@@ -2,7 +2,7 @@
 
 The `xpath.parse()` method allows pre-parsing an XPath expression and creating an XPath executor to evaluate the XPath as many times as needed.
 
-This can provide a performance benefit if you plan to evaluate the same XPath multiple times because the expression only needs to be parsed once.
+This can provide a performance benefit if you plan to evaluate the same XPath multiple times, because the expression only needs to be parsed once.
 
 This also provides access to additional features such as the use of variables and custom XPath functinos, which are not available using the evaluation methods on the `xpath` object.
 
