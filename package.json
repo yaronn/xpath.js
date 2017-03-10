@@ -1,7 +1,7 @@
 {
   "name": "xpath",
-  "version": "0.0.23",
-  "description": "DOM 3 Xpath implemention and helper for node.js.",
+  "version": "0.0.24",
+  "description": "DOM 3 XPath implemention and helper for node.js.",
   "engines": {
     "node": ">=0.6.0"
   },
