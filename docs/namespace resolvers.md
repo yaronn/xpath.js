@@ -1,18 +1,18 @@
 # Namespace Resolvers
 
-The methods on the [XPathEvaluator](#) type can optionally take a namespace resolver to resolve 
+The methods on the [XPathEvaluator](XPathEvaluator.md) type can optionally take a namespace resolver to resolve 
 namespace references in the XPath expression being evaluated.
 
 There are three ways to specify a namespace resolver and you can use any one of them depending on which is 
 most suited to your particular situation.
 
-## Plain object
+## Namespace Resolver Type 1: Plain object
 
 A plain object with namespace prefixes as the keys and namespace URIs as the values:
 
 Example usage:
 
-````
+```js
 var evaluator = xpath.parse('/bk:book/hp:characters');
 var characters = evaluator.select({
     node: myBookNode,
@@ -21,15 +21,15 @@ var characters = evaluator.select({
         'hp': 'http://sample.org/harrypotter/'
     }
 });
-````
+```
 
-## Function
+## Namespace Resolver Type 2: Function
 
 A function that takes a namespace prefix as a parameter and returns the corresponding namespace URI. 
 
 Example usage:
 
-````
+```js
 var evaluator = xpath.parse('/bk:book/hp:characters');
 var characters = evaluator.select({
     node: myBookNode,
@@ -42,16 +42,16 @@ var characters = evaluator.select({
         }
     }
 });
-````
+```
 
-## Object with `getNamespace` method
+## Namespace Resolver Type 3: Object with `getNamespace` method
 
 An object with a method named `getNamespace` that works in the same way as the function-based namespace resolver 
 described above.
 
 Example usage:
 
-````
+```js
 var evaluator = xpath.parse('/bk:book/hp:characters');
 var characters = evaluator.select({
     node: myBookNode,
@@ -66,4 +66,4 @@ var characters = evaluator.select({
         }
     }
 });
-````
+```
