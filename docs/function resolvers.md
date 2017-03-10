@@ -1,6 +1,6 @@
 # Function Resolvers
 
-The methods on the [XPathEvaluator](#) type can optionally take a function resolver to resolve 
+The methods on the [XPathEvaluator](XPathEvaluator.md) type can optionally take a function resolver to resolve 
 function references in the XPath expression being evaluated.
 
 There are three ways to specify a function resolver and you can use any one of them depending on which is 
@@ -17,7 +17,7 @@ The first argument passed in is a context object containing a number of properti
 the most important being `contextNode`, the context in which the function is being evaluated.
 
 The remaining arguments are the arguments passed into the XPath function, as instances of the `XPathResult` interface.
-Please see [the documentation on that interface](#) for details.
+Please see [the documentation on that interface](XPathResult.md) for details.
 
 As the return value, you can return a string, number, boolean, single node, or array of nodes.
 
@@ -28,7 +28,7 @@ A plain object with function names as the keys and function implementations as t
 
 Example usage:
 
-````
+```js
 var evaluator = xpath.parse('squareRoot(10)');
 var aboutPi = evaluator.evaluateNumber({
 	functions: {
@@ -37,7 +37,7 @@ var aboutPi = evaluator.evaluateNumber({
 		}
 	}
 });
-````
+```
 
 ## Function Resolver Type 2: Function
 
@@ -46,7 +46,7 @@ and returns a function based on the name and namespace.
 
 Example usage:
 
-````
+```js
 var evaluator = xpath.parse('math:squareRoot(10)');
 var aboutPi = evaluator.evaluateNumber({
 	functions: function (name, namespace) {
@@ -60,7 +60,7 @@ var aboutPi = evaluator.evaluateNumber({
         math: 'http://sample.org/math/'
     }
 });
-````
+```
 
 ## Function Resolver Type 3: Object with `getFunction` method
 
@@ -69,7 +69,7 @@ described above.
 
 Example usage:
 
-````
+```js
 var evaluator = xpath.parse('math:squareRoot(10)');
 var aboutPi = evaluator.evaluateNumber({
 	functions: {
@@ -85,4 +85,4 @@ var aboutPi = evaluator.evaluateNumber({
         math: 'http://sample.org/math/'
     }
 });
-````
+```
