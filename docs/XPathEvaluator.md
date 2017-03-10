@@ -14,7 +14,7 @@ Each of these methods takes an optional `options` object, which can contain any 
 
 Example usage: 
 
-````
+```js
 var evaluator = xpath.parse('/characters/character[@greeting = $greeting]');
 var character = evaluator.select1({
     node: myCharacterDoc,
@@ -22,7 +22,7 @@ var character = evaluator.select1({
         greeting: 'Hello, I'm Harry, Harry Potter.`
     }
 });
-````
+```
 
 ## `XPathEvaluator` methods
 
