@@ -1,4 +1,4 @@
-#xpath methods
+# xpath methods
 
 This page details the methods exposed on the `xpath` object.
 
