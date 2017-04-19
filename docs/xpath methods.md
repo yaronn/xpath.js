@@ -2,6 +2,10 @@
 
 This page details the methods exposed on the `xpath` object.
 
+### `xpath.parse(expression)`
+
+Creates a parsed expression. See the [documentation page](parsed expressions.md) for details.
+
 ### `xpath.select(expression[, node[, single]])`
 
 Evaluates an XPath expression and returns the result. The return value is determined based on the result type of the expression (which can always be predicted ahead of time):
@@ -17,9 +21,13 @@ Evaluates an XPath expression and returns the result. The return value is determ
 
 `single` is optional and is ignored if the expression evaluates to anything other than a nodeset.
 
+### `xpath.select1(expression[, node])`
+
+Alias for [`xpath.select(expression, node, true)`](#xpathselectexpression-node-single). Selects a single node or value.
+
 ### `xpath.useNamespaces(mappings)`
 
-Produces a function with the signature `func(expression, node)` that evaluates the provided xpath expression with the XML namespace definitions provided in `mapppings`.
+Produces a function with the same signature as `.select()` that evaluates the provided xpath expression using the XML namespace definitions provided in `mapppings`.
 
 `mappings` should be an object with namespace prefixes as its property names and namespace URIs as its property values.
 
@@ -29,11 +37,3 @@ Example usage:
 var expr = xpath.useNamespaces({ hp: 'http://www.example.com/harryPotter', bk: 'http://www.example.com/books' });
 var result = expr('/bk:books/bk:book[@name = "Harry Potter and the Half-Blood Prince"]/hp:characters', myBooks);
 ```
-
-### `xpath.select1(expression[, node])`
-
-Alias for [`xpath.select(expression, node, true)`](#xpathselectexpression-node-single). Selects a single node or value.
-
-### `xpath.parse(expression)`
-
-Creates a parsed expression. See the [documentation page](parsed expressions.md) for details.
