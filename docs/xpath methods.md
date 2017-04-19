@@ -4,7 +4,7 @@ This page details the methods exposed on the `xpath` object.
 
 ### `xpath.parse(expression)`
 
-Creates a parsed expression. See the [documentation page](parsed expressions.md) for details.
+Creates a parsed expression. See the [documentation page](parsed%20expressions.md) for details.
 
 ### `xpath.select(expression[, node[, single]])`
 
@@ -27,7 +27,7 @@ Alias for [`xpath.select(expression, node, true)`](#xpathselectexpression-node-s
 
 ### `xpath.useNamespaces(mappings)`
 
-Produces a function with the same signature as `.select()` that evaluates the provided xpath expression using the XML namespace definitions provided in `mapppings`.
+Produces a function with the same signature as [`xpath.select()`](#xpathselectexpression-node-single) that evaluates the provided xpath expression using the XML namespace definitions provided in `mapppings`.
 
 `mappings` should be an object with namespace prefixes as its property names and namespace URIs as its property values.
 
