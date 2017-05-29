@@ -851,5 +851,52 @@ module.exports = {
 		
 		test.done();
 	}
+
+	,'inequality comparisons with nodesets': function (test) {
+        var xml = "<books><book num='1' title='PS' /><book num='2' title='CoS' /><book num='3' title='PoA' /><book num='4' title='GoF' /><book num='5' title='OotP' /><book num='6' title='HBP' /><book num='7' title='DH' /></books>";
+        var doc = new dom().parseFromString(xml);
+
+        var options = { node: doc, variables: { theNumber: 3, theString: '3', theBoolean: true }};
+
+        var numberPaths = [
+		    '/books/book[$theNumber <= @num]', 
+            '/books/book[$theNumber < @num]',
+		    '/books/book[$theNumber >= @num]', 
+            '/books/book[$theNumber > @num]'
+        ];
+
+		var stringPaths = [
+		    '/books/book[$theString <= @num]', 
+            '/books/book[$theString < @num]',
+		    '/books/book[$theString >= @num]', 
+            '/books/book[$theString > @num]'
+		];
+
+		var booleanPaths = [
+		    '/books/book[$theBoolean <= @num]', 
+            '/books/book[$theBoolean < @num]',
+		    '/books/book[$theBoolean >= @num]', 
+            '/books/book[$theBoolean > @num]'
+		];
+
+		var lhsPaths = [
+            '/books/book[@num <= $theNumber]',
+            '/books/book[@num < $theNumber]'
+		];
+
+		function countNodes(paths){
+			return paths
+		        .map(xpath.parse)
+                .map(function (path) { return path.select(options) })
+                .map(function (arr) { return arr.length; });
+		}
+		
+        assert.deepEqual(countNodes(numberPaths), [5, 4, 3, 2], 'numbers');
+        assert.deepEqual(countNodes(stringPaths), [5, 4, 3, 2], 'strings');
+        assert.deepEqual(countNodes(booleanPaths), [7, 6, 1, 0], 'numbers');
+        assert.deepEqual(countNodes(lhsPaths), [3, 2], 'lhs');
+		
+		test.done();
+	}
 	
 }

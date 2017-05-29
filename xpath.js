@@ -2428,31 +2428,19 @@ XString.prototype.notequal = function(r) {
 };
 
 XString.prototype.lessthan = function(r) {
-	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this.number(), Operators.greaterthanorequal);
-	}
-	return this.number().lessthan(r.number());
+	return this.number().lessthan(r);
 };
 
 XString.prototype.greaterthan = function(r) {
-	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this.number(), Operators.lessthanorequal);
-	}
-	return this.number().greaterthan(r.number());
+	return this.number().greaterthan(r);
 };
 
 XString.prototype.lessthanorequal = function(r) {
-	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this.number(), Operators.greaterthan);
-	}
-	return this.number().lessthanorequal(r.number());
+	return this.number().lessthanorequal(r);
 };
 
 XString.prototype.greaterthanorequal = function(r) {
-	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this.number(), Operators.lessthan);
-	}
-	return this.number().greaterthanorequal(r.number());
+	return this.number().greaterthanorequal(r);
 };
 
 // XNumber ///////////////////////////////////////////////////////////////////
@@ -2583,7 +2571,7 @@ XNumber.prototype.notequal = function(r) {
 
 XNumber.prototype.lessthan = function(r) {
 	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this, Operators.greaterthanorequal);
+		return r.compareWithNumber(this, Operators.greaterthan);
 	}
 	if (Utilities.instance_of(r, XBoolean) || Utilities.instance_of(r, XString)) {
 		return this.lessthan(r.number());
@@ -2593,7 +2581,7 @@ XNumber.prototype.lessthan = function(r) {
 
 XNumber.prototype.greaterthan = function(r) {
 	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this, Operators.lessthanorequal);
+		return r.compareWithNumber(this, Operators.lessthan);
 	}
 	if (Utilities.instance_of(r, XBoolean) || Utilities.instance_of(r, XString)) {
 		return this.greaterthan(r.number());
@@ -2603,7 +2591,7 @@ XNumber.prototype.greaterthan = function(r) {
 
 XNumber.prototype.lessthanorequal = function(r) {
 	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this, Operators.greaterthan);
+		return r.compareWithNumber(this, Operators.greaterthanorequal);
 	}
 	if (Utilities.instance_of(r, XBoolean) || Utilities.instance_of(r, XString)) {
 		return this.lessthanorequal(r.number());
@@ -2613,7 +2601,7 @@ XNumber.prototype.lessthanorequal = function(r) {
 
 XNumber.prototype.greaterthanorequal = function(r) {
 	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this, Operators.lessthan);
+		return r.compareWithNumber(this, Operators.lessthanorequal);
 	}
 	if (Utilities.instance_of(r, XBoolean) || Utilities.instance_of(r, XString)) {
 		return this.greaterthanorequal(r.number());
@@ -2718,31 +2706,19 @@ XBoolean.prototype.notequal = function(r) {
 };
 
 XBoolean.prototype.lessthan = function(r) {
-	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this.number(), Operators.greaterthanorequal);
-	}
-	return this.number().lessthan(r.number());
+	return this.number().lessthan(r);
 };
 
 XBoolean.prototype.greaterthan = function(r) {
-	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this.number(), Operators.lessthanorequal);
-	}
-	return this.number().greaterthan(r.number());
+	return this.number().greaterthan(r);
 };
 
 XBoolean.prototype.lessthanorequal = function(r) {
-	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this.number(), Operators.greaterthan);
-	}
-	return this.number().lessthanorequal(r.number());
+	return this.number().lessthanorequal(r);
 };
 
 XBoolean.prototype.greaterthanorequal = function(r) {
-	if (Utilities.instance_of(r, XNodeSet)) {
-		return r.compareWithNumber(this.number(), Operators.lessthan);
-	}
-	return this.number().greaterthanorequal(r.number());
+	return this.number().greaterthanorequal(r);
 };
 
 // AVLTree ///////////////////////////////////////////////////////////////////
