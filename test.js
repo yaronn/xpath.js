@@ -898,5 +898,16 @@ module.exports = {
 		
 		test.done();
 	}
-	
+
+    ,'error when evaluating boolean as number' : function (test) {
+		var num = xpath.parse('"a" = "b"').evaluateNumber();
+		
+		assert.equal(num, 0);
+		
+		var str = xpath.select('substring("expelliarmus", 1, "a" = "a")');
+		
+		assert.equal(str, 'e');
+		
+		test.done();
+	}	
 }

@@ -2674,7 +2674,7 @@ XBoolean.prototype.stringValue = function() {
 };
 
 XBoolean.prototype.numberValue = function() {
-	return this.num().numberValue();
+	return this.number().numberValue();
 };
 
 XBoolean.prototype.booleanValue = function() {
