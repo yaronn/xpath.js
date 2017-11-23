@@ -2304,7 +2304,7 @@ NodeTest.NameTestQName = NodeTest.makeNodeTestType(NodeTest.NAMETESTQNAME, {
 
 NodeTest.PITest = NodeTest.makeNodeTestType(NodeTest.PI, {
 	matches: function (n, xpc) {
-		return NodeTest.isNodeType([7]) && n.nodeName === this.name;
+		return NodeTest.isNodeType([7])(n) && (n.target || n.nodeName) === this.name;
 	},
 	toString: function () {
         return wrap('processing-instruction("', '")', this.name);

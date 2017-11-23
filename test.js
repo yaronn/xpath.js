@@ -21,7 +21,7 @@ module.exports = {
 	},
 
 	'select': function(test) {
-		var xml = '<?book title="Harry Potter" ?><?series title="Harry Potter" ?><book><!-- This is a great book --><title>Harry Potter</title></book>';
+		var xml = '<?book title="Harry Potter"?><?series title="Harry Potter"?><?series books="7"?><book><!-- This is a great book --><title>Harry Potter</title></book>';
 		var doc = new dom().parseFromString(xml);
 		var nodes = xpath.select('//title', doc);
 		assert.equal('title', nodes[0].localName);
@@ -29,8 +29,11 @@ module.exports = {
 		assert.equal('<title>Harry Potter</title>', nodes[0].toString());
 		
 		var nodes2 = xpath.select('//node()', doc);
-		
-		assert.equal(6, nodes2.length);
+		assert.equal(7, nodes2.length);
+
+		var pis = xpath.select("/processing-instruction('series')", doc);
+		assert.equal(2, pis.length);
+		assert.equal('books="7"', pis[1].data);
 		
 		test.done();
 	},
