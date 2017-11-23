@@ -113,14 +113,14 @@ function curry( func ) {
         totalargs = func.length,
         partial = function( args, fn ) {
             return function( ) {
-                return fn.apply( {}, args.concat( slice.call( arguments ) ) );
+                return fn.apply( this, args.concat( slice.call( arguments ) ) );
             }
         },
         fn = function( ) {
             var args = slice.call( arguments );
             return ( args.length < totalargs ) ?
                 partial( args, fn ) :
-                func.apply( {}, slice.apply( arguments, [ 0, totalargs ] ) );
+                func.apply( this, slice.apply( arguments, [ 0, totalargs ] ) );
         };
     return fn;
 }
@@ -2259,13 +2259,17 @@ NodeTest.makeNodeTypeTest = function (type, nodeTypes, stringVal) {
 
 NodeTest.isElementOrAttribute = NodeTest.isNodeType([1, 2]);
 NodeTest.nameSpaceMatches = function (prefix, xpc, n) {
+	var nNamespace = (n.namespaceURI || '');
+	
+	if (!prefix) { return !nNamespace; }
+	
     var ns = xpc.namespaceResolver.getNamespace(prefix, xpc.expressionContextNode);
 
 	if (ns == null) {
         throw new Error("Cannot resolve QName " + prefix);
     }
 
-    return ns === (n.namespaceURI || '');
+    return ns === nNamespace;
 };
 NodeTest.localNameMatches = function (localName, xpc, n) {
 	var nLocalName = (n.localName || n.nodeName);
@@ -2288,7 +2292,7 @@ NodeTest.NameTestPrefixAny = NodeTest.makeNodeTestType(NodeTest.NAMETESTPREFIXAN
 NodeTest.NameTestQName = NodeTest.makeNodeTestType(NodeTest.NAMETESTQNAME, {
 	matches: function (n, xpc) {
 		return NodeTest.isNodeType([1, 2, XPathNamespace.XPATH_NAMESPACE_NODE])(n) &&
-		    (this.prefix === null || NodeTest.nameSpaceMatches(this.prefix, xpc, n)) &&
+		    NodeTest.nameSpaceMatches(this.prefix, xpc, n) &&
             NodeTest.localNameMatches(this.localName, xpc, n);
 	},
 	toString: function () {
@@ -2392,6 +2396,34 @@ FunctionCall.prototype.evaluate = function(c) {
 
     var a = [c].concat(this.arguments);
 	return f.apply(c.functionResolver.thisArg, a);
+};
+
+// Operators /////////////////////////////////////////////////////////////////
+
+var Operators = new Object();
+
+Operators.equals = function(l, r) {
+	return l.equals(r);
+};
+
+Operators.notequal = function(l, r) {
+	return l.notequal(r);
+};
+
+Operators.lessthan = function(l, r) {
+	return l.lessthan(r);
+};
+
+Operators.greaterthan = function(l, r) {
+	return l.greaterthan(r);
+};
+
+Operators.lessthanorequal = function(l, r) {
+	return l.lessthanorequal(r);
+};
+
+Operators.greaterthanorequal = function(l, r) {
+	return l.greaterthanorequal(r);
 };
 
 // XString ///////////////////////////////////////////////////////////////////
@@ -3173,83 +3205,25 @@ XNodeSet.prototype.compareWithNodeSet = function(r, o) {
 	return new XBoolean(false);
 };
 
-XNodeSet.prototype.equals = function(r) {
+XNodeSet.compareWith = curry(function (o, r) {
 	if (Utilities.instance_of(r, XString)) {
-		return this.compareWithString(r, Operators.equals);
+		return this.compareWithString(r, o);
 	}
 	if (Utilities.instance_of(r, XNumber)) {
-		return this.compareWithNumber(r, Operators.equals);
+		return this.compareWithNumber(r, o);
 	}
 	if (Utilities.instance_of(r, XBoolean)) {
-		return this.compareWithBoolean(r, Operators.equals);
+		return this.compareWithBoolean(r, o);
 	}
-	return this.compareWithNodeSet(r, Operators.equals);
-};
+	return this.compareWithNodeSet(r, o);
+});
 
-XNodeSet.prototype.notequal = function(r) {
-	if (Utilities.instance_of(r, XString)) {
-		return this.compareWithString(r, Operators.notequal);
-	}
-	if (Utilities.instance_of(r, XNumber)) {
-		return this.compareWithNumber(r, Operators.notequal);
-	}
-	if (Utilities.instance_of(r, XBoolean)) {
-		return this.compareWithBoolean(r, Operators.notequal);
-	}
-	return this.compareWithNodeSet(r, Operators.notequal);
-};
-
-XNodeSet.prototype.lessthan = function(r) {
-	if (Utilities.instance_of(r, XString)) {
-		return this.compareWithNumber(r.number(), Operators.lessthan);
-	}
-	if (Utilities.instance_of(r, XNumber)) {
-		return this.compareWithNumber(r, Operators.lessthan);
-	}
-	if (Utilities.instance_of(r, XBoolean)) {
-		return this.compareWithBoolean(r, Operators.lessthan);
-	}
-	return this.compareWithNodeSet(r, Operators.lessthan);
-};
-
-XNodeSet.prototype.greaterthan = function(r) {
-	if (Utilities.instance_of(r, XString)) {
-		return this.compareWithNumber(r.number(), Operators.greaterthan);
-	}
-	if (Utilities.instance_of(r, XNumber)) {
-		return this.compareWithNumber(r, Operators.greaterthan);
-	}
-	if (Utilities.instance_of(r, XBoolean)) {
-		return this.compareWithBoolean(r, Operators.greaterthan);
-	}
-	return this.compareWithNodeSet(r, Operators.greaterthan);
-};
-
-XNodeSet.prototype.lessthanorequal = function(r) {
-	if (Utilities.instance_of(r, XString)) {
-		return this.compareWithNumber(r.number(), Operators.lessthanorequal);
-	}
-	if (Utilities.instance_of(r, XNumber)) {
-		return this.compareWithNumber(r, Operators.lessthanorequal);
-	}
-	if (Utilities.instance_of(r, XBoolean)) {
-		return this.compareWithBoolean(r, Operators.lessthanorequal);
-	}
-	return this.compareWithNodeSet(r, Operators.lessthanorequal);
-};
-
-XNodeSet.prototype.greaterthanorequal = function(r) {
-	if (Utilities.instance_of(r, XString)) {
-		return this.compareWithNumber(r.number(), Operators.greaterthanorequal);
-	}
-	if (Utilities.instance_of(r, XNumber)) {
-		return this.compareWithNumber(r, Operators.greaterthanorequal);
-	}
-	if (Utilities.instance_of(r, XBoolean)) {
-		return this.compareWithBoolean(r, Operators.greaterthanorequal);
-	}
-	return this.compareWithNodeSet(r, Operators.greaterthanorequal);
-};
+XNodeSet.prototype.equals = XNodeSet.compareWith(Operators.equals);
+XNodeSet.prototype.notequal = XNodeSet.compareWith(Operators.notequal);
+XNodeSet.prototype.lessthan = XNodeSet.compareWith(Operators.lessthan);
+XNodeSet.prototype.greaterthan = XNodeSet.compareWith(Operators.greaterthan);
+XNodeSet.prototype.lessthanorequal = XNodeSet.compareWith(Operators.lessthanorequal);
+XNodeSet.prototype.greaterthanorequal = XNodeSet.compareWith(Operators.greaterthanorequal);
 
 XNodeSet.prototype.union = function(r) {
 	var ns = new XNodeSet();
@@ -3278,34 +3252,6 @@ function XPathNamespace(pre, ns, p) {
 
 XPathNamespace.prototype.toString = function() {
 	return "{ \"" + this.prefix + "\", \"" + this.namespaceURI + "\" }";
-};
-
-// Operators /////////////////////////////////////////////////////////////////
-
-var Operators = new Object();
-
-Operators.equals = function(l, r) {
-	return l.equals(r);
-};
-
-Operators.notequal = function(l, r) {
-	return l.notequal(r);
-};
-
-Operators.lessthan = function(l, r) {
-	return l.lessthan(r);
-};
-
-Operators.greaterthan = function(l, r) {
-	return l.greaterthan(r);
-};
-
-Operators.lessthanorequal = function(l, r) {
-	return l.lessthanorequal(r);
-};
-
-Operators.greaterthanorequal = function(l, r) {
-	return l.greaterthanorequal(r);
 };
 
 // XPathContext //////////////////////////////////////////////////////////////

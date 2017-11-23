@@ -74,6 +74,10 @@ module.exports = {
 		assert.equal('title', nodes[0].localName);
 		assert.equal('myns', nodes[0].namespaceURI) ;
 
+		var nodes2 = xpath.select('/*/title', doc);
+		
+		assert.equal(0, nodes2.length);
+		
 		test.done();
 	},
 
