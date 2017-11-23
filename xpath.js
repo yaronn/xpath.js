@@ -147,6 +147,14 @@ var map = curry(function (f, xs) {
 	return mapped;
 });
 
+var filter = curry(function (f, xs) {
+	var filtered = [];
+	
+	forEach(function (x, i) { if(f(x, i)) { filtered.push(x); } }, xs);
+	
+	return filtered;
+});
+
 function compose() {
     if (arguments.length === 0) { throw new Error('compose requires at least one argument'); }
 
@@ -179,6 +187,25 @@ var prop = curry(function (name, obj) { return obj[name]; });
 function toString (x) { return x.toString(); }
 var join = curry(function (s, xs) { return xs.join(s); });
 var wrap = curry(function (pref, suf, str) { return pref + str + suf; });
+
+function assign(target) { // .length of function is 2
+    var to = Object(target);
+
+    for (var index = 1; index < arguments.length; index++) {
+        var nextSource = arguments[index];
+
+        if (nextSource != null) { // Skip over if undefined or null
+            for (var nextKey in nextSource) {
+                // Avoid bugs when hasOwnProperty is shadowed
+                if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                    to[nextKey] = nextSource[nextKey];
+                }
+            }
+        }
+    }
+
+    return to;
+}
 
 // XPathParser ///////////////////////////////////////////////////////////////
 
@@ -1746,318 +1773,336 @@ function findRoot(node) {
     return node;
 }
 
+PathExpr.applyPredicates = function (predicates, c, nodes) {
+	return reduce(function (inNodes, pred) {
+		var ctx = c.extend({ contextSize: inNodes.length });
+		
+		return filter(function (node, i) {
+			return PathExpr.predicateMatches(pred, ctx.extend({ contextNode: node, contextPosition: i + 1 }));
+		}, inNodes);
+	}, nodes, predicates);
+};
+
+PathExpr.getRoot = function (xpc, nodes) {
+	var firstNode = nodes[0];
+	
+    if (firstNode.nodeType === 9 /*Node.DOCUMENT_NODE*/) {
+		return firstNode;
+	}
+	
+    if (xpc.virtualRoot) {
+    	return xpc.virtualRoot;
+    }
+		
+	var ownerDoc = firstNode.ownerDocument;
+	
+	if (ownerDoc) {
+		return ownerDoc;
+	}
+			
+    // IE 5.5 doesn't have ownerDocument?
+    var n = firstNode;
+    while (n.parentNode != null) {
+    	n = n.parentNode;
+    }
+    return n;
+}
+
+PathExpr.applyStep = function (step, xpc, node) {
+	var self = this;
+	var newNodes = [];
+    xpc.contextNode = node;
+    
+    switch (step.axis) {
+    	case Step.ANCESTOR:
+    		// look at all the ancestor nodes
+    		if (xpc.contextNode === xpc.virtualRoot) {
+    			break;
+    		}
+    		var m;
+    		if (xpc.contextNode.nodeType == 2 /*Node.ATTRIBUTE_NODE*/) {
+    			m = PathExpr.getOwnerElement(xpc.contextNode);
+    		} else {
+    			m = xpc.contextNode.parentNode;
+    		}
+    		while (m != null) {
+    			if (step.nodeTest.matches(m, xpc)) {
+    				newNodes.push(m);
+    			}
+    			if (m === xpc.virtualRoot) {
+    				break;
+    			}
+    			m = m.parentNode;
+    		}
+    		break;
+    
+    	case Step.ANCESTORORSELF:
+    		// look at all the ancestor nodes and the current node
+    		for (var m = xpc.contextNode; m != null; m = m.nodeType == 2 /*Node.ATTRIBUTE_NODE*/ ? PathExpr.getOwnerElement(m) : m.parentNode) {
+    			if (step.nodeTest.matches(m, xpc)) {
+    				newNodes.push(m);
+    			}
+    			if (m === xpc.virtualRoot) {
+    				break;
+    			}
+    		}
+    		break;
+    
+    	case Step.ATTRIBUTE:
+    		// look at the attributes
+    		var nnm = xpc.contextNode.attributes;
+    		if (nnm != null) {
+    			for (var k = 0; k < nnm.length; k++) {
+    				var m = nnm.item(k);
+    				if (step.nodeTest.matches(m, xpc)) {
+    					newNodes.push(m);
+    				}
+    			}
+    		}
+    		break;
+    
+    	case Step.CHILD:
+    		// look at all child elements
+    		for (var m = xpc.contextNode.firstChild; m != null; m = m.nextSibling) {
+    			if (step.nodeTest.matches(m, xpc)) {
+    				newNodes.push(m);
+    			}
+    		}
+    		break;
+    
+    	case Step.DESCENDANT:
+    		// look at all descendant nodes
+    		var st = [ xpc.contextNode.firstChild ];
+    		while (st.length > 0) {
+    			for (var m = st.pop(); m != null; ) {
+    				if (step.nodeTest.matches(m, xpc)) {
+    					newNodes.push(m);
+    				}
+    				if (m.firstChild != null) {
+    					st.push(m.nextSibling);
+    					m = m.firstChild;
+    				} else {
+    					m = m.nextSibling;
+    				}
+    			}
+    		}
+    		break;
+    
+    	case Step.DESCENDANTORSELF:
+    		// look at self
+    		if (step.nodeTest.matches(xpc.contextNode, xpc)) {
+    			newNodes.push(xpc.contextNode);
+    		}
+    		// look at all descendant nodes
+    		var st = [ xpc.contextNode.firstChild ];
+    		while (st.length > 0) {
+    			for (var m = st.pop(); m != null; ) {
+    				if (step.nodeTest.matches(m, xpc)) {
+    					newNodes.push(m);
+    				}
+    				if (m.firstChild != null) {
+    					st.push(m.nextSibling);
+    					m = m.firstChild;
+    				} else {
+    					m = m.nextSibling;
+    				}
+    			}
+    		}
+    		break;
+    
+    	case Step.FOLLOWING:
+    		if (xpc.contextNode === xpc.virtualRoot) {
+    			break;
+    		}
+    		var st = [];
+    		if (xpc.contextNode.firstChild != null) {
+    			st.unshift(xpc.contextNode.firstChild);
+    		} else {
+    			st.unshift(xpc.contextNode.nextSibling);
+    		}
+    		for (var m = xpc.contextNode.parentNode; m != null && m.nodeType != 9 /*Node.DOCUMENT_NODE*/ && m !== xpc.virtualRoot; m = m.parentNode) {
+    			st.unshift(m.nextSibling);
+    		}
+    		do {
+    			for (var m = st.pop(); m != null; ) {
+    				if (step.nodeTest.matches(m, xpc)) {
+    					newNodes.push(m);
+    				}
+    				if (m.firstChild != null) {
+    					st.push(m.nextSibling);
+    					m = m.firstChild;
+    				} else {
+    					m = m.nextSibling;
+    				}
+    			}
+    		} while (st.length > 0);
+    		break;
+    
+    	case Step.FOLLOWINGSIBLING:
+    		if (xpc.contextNode === xpc.virtualRoot) {
+    			break;
+    		}
+    		for (var m = xpc.contextNode.nextSibling; m != null; m = m.nextSibling) {
+    			if (step.nodeTest.matches(m, xpc)) {
+    				newNodes.push(m);
+    			}
+    		}
+    		break;
+    
+    	case Step.NAMESPACE:
+    		var n = {};
+    		if (xpc.contextNode.nodeType == 1 /*Node.ELEMENT_NODE*/) {
+    			n["xml"] = XPath.XML_NAMESPACE_URI;
+    			n["xmlns"] = XPath.XMLNS_NAMESPACE_URI;
+    			for (var m = xpc.contextNode; m != null && m.nodeType == 1 /*Node.ELEMENT_NODE*/; m = m.parentNode) {
+    				for (var k = 0; k < m.attributes.length; k++) {
+    					var attr = m.attributes.item(k);
+    					var nm = String(attr.name);
+    					if (nm == "xmlns") {
+    						if (n[""] == undefined) {
+    							n[""] = attr.value;
+    						}
+    					} else if (nm.length > 6 && nm.substring(0, 6) == "xmlns:") {
+    						var pre = nm.substring(6, nm.length);
+    						if (n[pre] == undefined) {
+    							n[pre] = attr.value;
+    						}
+    					}
+    				}
+    			}
+    			for (var pre in n) {
+    				var nsn = new XPathNamespace(pre, n[pre], xpc.contextNode);
+    				if (step.nodeTest.matches(nsn, xpc)) {
+    					newNodes.push(nsn);
+    				}
+    			}
+    		}
+    		break;
+    
+    	case Step.PARENT:
+    		m = null;
+    		if (xpc.contextNode !== xpc.virtualRoot) {
+    			if (xpc.contextNode.nodeType == 2 /*Node.ATTRIBUTE_NODE*/) {
+    				m = PathExpr.getOwnerElement(xpc.contextNode);
+    			} else {
+    				m = xpc.contextNode.parentNode;
+    			}
+    		}
+    		if (m != null && step.nodeTest.matches(m, xpc)) {
+    			newNodes.push(m);
+    		}
+    		break;
+    
+    	case Step.PRECEDING:
+    		var st;
+    		if (xpc.virtualRoot != null) {
+    			st = [ xpc.virtualRoot ];
+    		} else {
+                // cannot rely on .ownerDocument because the node may be in a document fragment
+                st = [findRoot(xpc.contextNode)];
+    		}
+    		outer: while (st.length > 0) {
+    			for (var m = st.pop(); m != null; ) {
+    				if (m == xpc.contextNode) {
+    					break outer;
+    				}
+    				if (step.nodeTest.matches(m, xpc)) {
+    					newNodes.unshift(m);
+    				}
+    				if (m.firstChild != null) {
+    					st.push(m.nextSibling);
+    					m = m.firstChild;
+    				} else {
+    					m = m.nextSibling;
+    				}
+    			}
+    		}
+    		break;
+    
+    	case Step.PRECEDINGSIBLING:
+    		if (xpc.contextNode === xpc.virtualRoot) {
+    			break;
+    		}
+    		for (var m = xpc.contextNode.previousSibling; m != null; m = m.previousSibling) {
+    			if (step.nodeTest.matches(m, xpc)) {
+    				newNodes.push(m);
+    			}
+    		}
+    		break;
+    
+    	case Step.SELF:
+    		if (step.nodeTest.matches(xpc.contextNode, xpc)) {
+    			newNodes.push(xpc.contextNode);
+    		}
+    		break;
+    
+    	default:
+    }
+	
+	return newNodes;
+};
+
+PathExpr.applySteps = function (steps, xpc, nodes) {
+	return reduce(function (inNodes, step) {
+		return [].concat.apply([], map(function (node) {
+			return PathExpr.applyPredicates(step.predicates, xpc, PathExpr.applyStep(step, xpc, node));
+		}, inNodes));
+	}, nodes, steps);
+}
+
+PathExpr.prototype.applyFilter = function(c, xpc) {
+	if (!this.filter) {
+		return { nodes: [ c.contextNode ] };
+	}
+	
+	var ns = this.filter.evaluate(c);
+
+	if (!Utilities.instance_of(ns, XNodeSet)) {
+        if (this.filterPredicates != null && this.filterPredicates.length > 0 || this.locationPath != null) {
+		    throw new Error("Path expression filter must evaluate to a nodeset if predicates or location path are used");
+		}
+
+		return { nonNodes: ns };
+	}
+	
+	return { 
+	    nodes: PathExpr.applyPredicates(this.filterPredicates || [], xpc, ns.toUnsortedArray())
+	};
+};
+
+PathExpr.applyLocationPath = function (locationPath, xpc, nodes) {
+	if (!locationPath) {
+		return nodes;
+	}
+	
+	var startNodes = locationPath.absolute ? [ PathExpr.getRoot(xpc, nodes) ] : nodes;
+		
+    return PathExpr.applySteps(locationPath.steps, xpc, startNodes);
+};
 
 PathExpr.prototype.evaluate = function(c) {
 	var nodes;
 	var xpc = new XPathContext();
+	
 	xpc.variableResolver = c.variableResolver;
 	xpc.functionResolver = c.functionResolver;
 	xpc.namespaceResolver = c.namespaceResolver;
 	xpc.expressionContextNode = c.expressionContextNode;
 	xpc.virtualRoot = c.virtualRoot;
 	xpc.caseInsensitive = c.caseInsensitive;
-	if (this.filter == null) {
-		nodes = [ c.contextNode ];
-	} else {
-		var ns = this.filter.evaluate(c);
-		if (!Utilities.instance_of(ns, XNodeSet)) {
-			if (this.filterPredicates != null && this.filterPredicates.length > 0 || this.locationPath != null) {
-				throw new Error("Path expression filter must evaluate to a nodset if predicates or location path are used");
-			}
-			return ns;
-		}
-		nodes = ns.toUnsortedArray();
-		if (this.filterPredicates != null) {
-			// apply each of the predicates in turn
-			for (var j = 0; j < this.filterPredicates.length; j++) {
-				var pred = this.filterPredicates[j];
-				var newNodes = [];
-				xpc.contextSize = nodes.length;
-				for (xpc.contextPosition = 1; xpc.contextPosition <= xpc.contextSize; xpc.contextPosition++) {
-					xpc.contextNode = nodes[xpc.contextPosition - 1];
-					if (this.predicateMatches(pred, xpc)) {
-						newNodes.push(xpc.contextNode);
-					}
-				}
-				nodes = newNodes;
-			}
-		}
-	}
-	if (this.locationPath != null) {
-		if (this.locationPath.absolute) {
-			if (nodes[0].nodeType != 9 /*Node.DOCUMENT_NODE*/) {
-				if (xpc.virtualRoot != null) {
-					nodes = [ xpc.virtualRoot ];
-				} else {
-					if (nodes[0].ownerDocument == null) {
-						// IE 5.5 doesn't have ownerDocument?
-						var n = nodes[0];
-						while (n.parentNode != null) {
-							n = n.parentNode;
-						}
-						nodes = [ n ];
-					} else {
-						nodes = [ nodes[0].ownerDocument ];
-					}
-				}
-			} else {
-				nodes = [ nodes[0] ];
-			}
-		}
-		for (var i = 0; i < this.locationPath.steps.length; i++) {
-			var step = this.locationPath.steps[i];
-			var newNodes = [];
-			for (var j = 0; j < nodes.length; j++) {
-				xpc.contextNode = nodes[j];
-				switch (step.axis) {
-					case Step.ANCESTOR:
-						// look at all the ancestor nodes
-						if (xpc.contextNode === xpc.virtualRoot) {
-							break;
-						}
-						var m;
-						if (xpc.contextNode.nodeType == 2 /*Node.ATTRIBUTE_NODE*/) {
-							m = this.getOwnerElement(xpc.contextNode);
-						} else {
-							m = xpc.contextNode.parentNode;
-						}
-						while (m != null) {
-							if (step.nodeTest.matches(m, xpc)) {
-								newNodes.push(m);
-							}
-							if (m === xpc.virtualRoot) {
-								break;
-							}
-							m = m.parentNode;
-						}
-						break;
 
-					case Step.ANCESTORORSELF:
-						// look at all the ancestor nodes and the current node
-						for (var m = xpc.contextNode; m != null; m = m.nodeType == 2 /*Node.ATTRIBUTE_NODE*/ ? this.getOwnerElement(m) : m.parentNode) {
-							if (step.nodeTest.matches(m, xpc)) {
-								newNodes.push(m);
-							}
-							if (m === xpc.virtualRoot) {
-								break;
-							}
-						}
-						break;
-
-					case Step.ATTRIBUTE:
-						// look at the attributes
-						var nnm = xpc.contextNode.attributes;
-						if (nnm != null) {
-							for (var k = 0; k < nnm.length; k++) {
-								var m = nnm.item(k);
-								if (step.nodeTest.matches(m, xpc)) {
-									newNodes.push(m);
-								}
-							}
-						}
-						break;
-
-					case Step.CHILD:
-						// look at all child elements
-						for (var m = xpc.contextNode.firstChild; m != null; m = m.nextSibling) {
-							if (step.nodeTest.matches(m, xpc)) {
-								newNodes.push(m);
-							}
-						}
-						break;
-
-					case Step.DESCENDANT:
-						// look at all descendant nodes
-						var st = [ xpc.contextNode.firstChild ];
-						while (st.length > 0) {
-							for (var m = st.pop(); m != null; ) {
-								if (step.nodeTest.matches(m, xpc)) {
-									newNodes.push(m);
-								}
-								if (m.firstChild != null) {
-									st.push(m.nextSibling);
-									m = m.firstChild;
-								} else {
-									m = m.nextSibling;
-								}
-							}
-						}
-						break;
-
-					case Step.DESCENDANTORSELF:
-						// look at self
-						if (step.nodeTest.matches(xpc.contextNode, xpc)) {
-							newNodes.push(xpc.contextNode);
-						}
-						// look at all descendant nodes
-						var st = [ xpc.contextNode.firstChild ];
-						while (st.length > 0) {
-							for (var m = st.pop(); m != null; ) {
-								if (step.nodeTest.matches(m, xpc)) {
-									newNodes.push(m);
-								}
-								if (m.firstChild != null) {
-									st.push(m.nextSibling);
-									m = m.firstChild;
-								} else {
-									m = m.nextSibling;
-								}
-							}
-						}
-						break;
-
-					case Step.FOLLOWING:
-						if (xpc.contextNode === xpc.virtualRoot) {
-							break;
-						}
-						var st = [];
-						if (xpc.contextNode.firstChild != null) {
-							st.unshift(xpc.contextNode.firstChild);
-						} else {
-							st.unshift(xpc.contextNode.nextSibling);
-						}
-						for (var m = xpc.contextNode.parentNode; m != null && m.nodeType != 9 /*Node.DOCUMENT_NODE*/ && m !== xpc.virtualRoot; m = m.parentNode) {
-							st.unshift(m.nextSibling);
-						}
-						do {
-							for (var m = st.pop(); m != null; ) {
-								if (step.nodeTest.matches(m, xpc)) {
-									newNodes.push(m);
-								}
-								if (m.firstChild != null) {
-									st.push(m.nextSibling);
-									m = m.firstChild;
-								} else {
-									m = m.nextSibling;
-								}
-							}
-						} while (st.length > 0);
-						break;
-
-					case Step.FOLLOWINGSIBLING:
-						if (xpc.contextNode === xpc.virtualRoot) {
-							break;
-						}
-						for (var m = xpc.contextNode.nextSibling; m != null; m = m.nextSibling) {
-							if (step.nodeTest.matches(m, xpc)) {
-								newNodes.push(m);
-							}
-						}
-						break;
-
-					case Step.NAMESPACE:
-						var n = {};
-						if (xpc.contextNode.nodeType == 1 /*Node.ELEMENT_NODE*/) {
-							n["xml"] = XPath.XML_NAMESPACE_URI;
-							n["xmlns"] = XPath.XMLNS_NAMESPACE_URI;
-							for (var m = xpc.contextNode; m != null && m.nodeType == 1 /*Node.ELEMENT_NODE*/; m = m.parentNode) {
-								for (var k = 0; k < m.attributes.length; k++) {
-									var attr = m.attributes.item(k);
-									var nm = String(attr.name);
-									if (nm == "xmlns") {
-										if (n[""] == undefined) {
-											n[""] = attr.value;
-										}
-									} else if (nm.length > 6 && nm.substring(0, 6) == "xmlns:") {
-										var pre = nm.substring(6, nm.length);
-										if (n[pre] == undefined) {
-											n[pre] = attr.value;
-										}
-									}
-								}
-							}
-							for (var pre in n) {
-								var nsn = new XPathNamespace(pre, n[pre], xpc.contextNode);
-								if (step.nodeTest.matches(nsn, xpc)) {
-									newNodes.push(nsn);
-								}
-							}
-						}
-						break;
-
-					case Step.PARENT:
-						m = null;
-						if (xpc.contextNode !== xpc.virtualRoot) {
-							if (xpc.contextNode.nodeType == 2 /*Node.ATTRIBUTE_NODE*/) {
-								m = this.getOwnerElement(xpc.contextNode);
-							} else {
-								m = xpc.contextNode.parentNode;
-							}
-						}
-						if (m != null && step.nodeTest.matches(m, xpc)) {
-							newNodes.push(m);
-						}
-						break;
-
-					case Step.PRECEDING:
-						var st;
-						if (xpc.virtualRoot != null) {
-							st = [ xpc.virtualRoot ];
-						} else {
-                            // cannot rely on .ownerDocument because the node may be in a document fragment
-                            st = [findRoot(xpc.contextNode)];
-						}
-						outer: while (st.length > 0) {
-							for (var m = st.pop(); m != null; ) {
-								if (m == xpc.contextNode) {
-									break outer;
-								}
-								if (step.nodeTest.matches(m, xpc)) {
-									newNodes.unshift(m);
-								}
-								if (m.firstChild != null) {
-									st.push(m.nextSibling);
-									m = m.firstChild;
-								} else {
-									m = m.nextSibling;
-								}
-							}
-						}
-						break;
-
-					case Step.PRECEDINGSIBLING:
-						if (xpc.contextNode === xpc.virtualRoot) {
-							break;
-						}
-						for (var m = xpc.contextNode.previousSibling; m != null; m = m.previousSibling) {
-							if (step.nodeTest.matches(m, xpc)) {
-								newNodes.push(m);
-							}
-						}
-						break;
-
-					case Step.SELF:
-						if (step.nodeTest.matches(xpc.contextNode, xpc)) {
-							newNodes.push(xpc.contextNode);
-						}
-						break;
-
-					default:
-				}
-			}
-			nodes = newNodes;
-			// apply each of the predicates in turn
-			for (var j = 0; j < step.predicates.length; j++) {
-				var pred = step.predicates[j];
-				var newNodes = [];
-				xpc.contextSize = nodes.length;
-				for (xpc.contextPosition = 1; xpc.contextPosition <= xpc.contextSize; xpc.contextPosition++) {
-					xpc.contextNode = nodes[xpc.contextPosition - 1];
-					if (this.predicateMatches(pred, xpc)) {
-						newNodes.push(xpc.contextNode);
-					} else {
-					}
-				}
-				nodes = newNodes;
-			}
-		}
-	}
+    var filterResult = this.applyFilter(c, xpc);
+	
+	if ('nonNodes' in filterResult) {
+		return filterResult.nonNodes;
+	}	
+	
 	var ns = new XNodeSet();
-	ns.addArray(nodes);
+	ns.addArray(PathExpr.applyLocationPath(this.locationPath, xpc, filterResult.nodes));
 	return ns;
 };
 
-PathExpr.prototype.predicateMatches = function(pred, c) {
+PathExpr.predicateMatches = function(pred, c) {
 	var res = pred.evaluate(c);
 	if (Utilities.instance_of(res, XNumber)) {
 		return c.contextPosition == res.numberValue();
@@ -2090,7 +2135,7 @@ PathExpr.prototype.toString = function() {
 	return toString(this.locationPath);
 };
 
-PathExpr.prototype.getOwnerElement = function(n) {
+PathExpr.getOwnerElement = function(n) {
 	// DOM 2 has ownerElement
 	if (n.ownerElement) {
 		return n.ownerElement;
@@ -3266,6 +3311,10 @@ function XPathContext(vr, nr, fr) {
 	this.functionResolver = fr != null ? fr : new FunctionResolver();
 }
 
+XPathContext.prototype.extend = function (newProps) {
+	return assign(new XPathContext(), this, newProps);
+};
+
 // VariableResolver //////////////////////////////////////////////////////////
 
 VariableResolver.prototype = new Object();
@@ -3357,7 +3406,7 @@ NamespaceResolver.prototype.getNamespace = function(prefix, n) {
 	if (n.nodeType == 9 /*Node.DOCUMENT_NODE*/) {
 		n = n.documentElement;
 	} else if (n.nodeType == 2 /*Node.ATTRIBUTE_NODE*/) {
-		n = PathExpr.prototype.getOwnerElement(n);
+		n = PathExpr.getOwnerElement(n);
 	} else if (n.nodeType != 1 /*Node.ELEMENT_NODE*/) {
 		n = n.parentNode;
 	}

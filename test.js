@@ -167,6 +167,18 @@ module.exports = {
 		test.done();
 	}
 
+	,'select with multiple predicates': function (test) {
+		var xml = '<characters><character name="Snape" sex="M" age="50" /><character name="McGonnagal" sex="F" age="65" /><character name="Harry" sex="M" age="14" /></characters>';
+		var doc = new dom().parseFromString(xml);
+		
+		var characters = xpath.select('/*/character[@sex = "M"][@age > 40]/@name', doc);
+		
+		assert.equal(1, characters.length);
+		assert.equal('Snape', characters[0].textContent);
+		
+		test.done();
+	}
+	
     // https://github.com/goto100/xpath/issues/37
 	,'select multiple attributes': function (test) {
 		var xml = '<authors><author name="J. K. Rowling" /><author name="Saeed Akl" /></authors>';
@@ -952,4 +964,33 @@ module.exports = {
 		
         test.done();
     } 
+	
+	,'context position should work correctly': function (test) {
+		var doc = new dom().parseFromString("<books><book><chapter>The boy who lived</chapter><chapter>The vanishing glass</chapter></book><book><chapter>The worst birthday</chapter><chapter>Dobby's warning</chapter><chapter>The burrow</chapter></book></books>");
+		
+		var chapters = xpath.parse('/books/book/chapter[2]').select({ node: doc });
+		
+		assert.equal(2, chapters.length);
+		assert.equal('The vanishing glass', chapters[0].textContent);
+		assert.equal("Dobby's warning", chapters[1].textContent);
+
+		var lastChapters = xpath.parse('/books/book/chapter[last()]').select({ node: doc });
+		
+		assert.equal(2, lastChapters.length);
+		assert.equal('The vanishing glass', lastChapters[0].textContent);
+		assert.equal("The burrow", lastChapters[1].textContent);
+
+		var secondChapter = xpath.parse('(/books/book/chapter)[2]').select({ node: doc });
+		
+		assert.equal(1, secondChapter.length);
+		assert.equal('The vanishing glass', chapters[0].textContent);
+
+		var lastChapter = xpath.parse('(/books/book/chapter)[last()]').select({ node: doc });
+		
+		assert.equal(1, lastChapter.length);
+		assert.equal("The burrow", lastChapter[0].textContent);
+
+		
+		test.done();
+	}
 }
