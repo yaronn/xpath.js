@@ -21,12 +21,17 @@ module.exports = {
 	},
 
 	'select': function(test) {
-		var xml = '<book><title>Harry Potter</title></book>';
+		var xml = '<?book title="Harry Potter" ?><?series title="Harry Potter" ?><book><!-- This is a great book --><title>Harry Potter</title></book>';
 		var doc = new dom().parseFromString(xml);
 		var nodes = xpath.select('//title', doc);
 		assert.equal('title', nodes[0].localName);
 		assert.equal('Harry Potter', nodes[0].firstChild.data);
 		assert.equal('<title>Harry Potter</title>', nodes[0].toString());
+		
+		var nodes2 = xpath.select('//node()', doc);
+		
+		assert.equal(6, nodes2.length);
+		
 		test.done();
 	},
 
@@ -49,7 +54,7 @@ module.exports = {
 		test.done();
 	},
 
-	'select number node': function(test) {
+	'select number value': function(test) {
 		var xml = '<book><title>Harry</title><title>Potter</title></book>';
 		var doc = new dom().parseFromString(xml);
 
@@ -70,7 +75,7 @@ module.exports = {
 	},
 
 	'select xpath with namespaces, using a resolver': function (test) {
-		var xml = '<book xmlns:testns="http://example.com/test"><testns:title>Harry Potter</testns:title><testns:field testns:type="author">JKR</testns:field></book>';
+		var xml = '<book xmlns:testns="http://example.com/test" xmlns:otherns="http://example.com/other"><otherns:title>Narnia</otherns:title><testns:title>Harry Potter</testns:title><testns:field testns:type="author">JKR</testns:field></book>';
 		var doc = new dom().parseFromString(xml);
 
 		var resolver = {
@@ -85,6 +90,10 @@ module.exports = {
 		var nodes = xpath.selectWithResolver('//testns:title/text()', doc, resolver);
 		assert.equal('Harry Potter', xpath.selectWithResolver('//testns:title/text()', doc, resolver)[0].nodeValue);
 		assert.equal('JKR', xpath.selectWithResolver('//testns:field[@testns:type="author"]/text()', doc, resolver)[0].nodeValue);
+		
+		var nodes2 = xpath.selectWithResolver('/*/testns:*', doc, resolver);
+		
+		assert.equal(2, nodes2.length);
 
 		test.done();
 	},
