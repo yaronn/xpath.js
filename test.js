@@ -899,7 +899,7 @@ module.exports = {
 		test.done();
 	}
 
-    ,'error when evaluating boolean as number' : function (test) {
+    ,'error when evaluating boolean as number': function (test) {
 		var num = xpath.parse('"a" = "b"').evaluateNumber();
 		
 		assert.equal(num, 0);
@@ -909,5 +909,31 @@ module.exports = {
 		assert.equal(str, 'e');
 		
 		test.done();
-	}	
+    }	
+    
+    ,'string values of parsed expressions': function (test) {
+        var parser = new xpath.XPathParser();
+
+        var simpleStep = parser.parse('my:book');
+
+        assert.equal(simpleStep.toString(), 'child::my:book');
+
+        var precedingSib = parser.parse('preceding-sibling::my:chapter');
+
+        assert.equal(precedingSib.toString(), 'preceding-sibling::my:chapter');
+
+        var withPredicates = parser.parse('book[number > 3][contains(title, "and the")]');
+
+        assert.equal(withPredicates.toString(), "child::book[(child::number > 3)][contains(child::title, 'and the')]");
+
+		var parenthesisWithPredicate = parser.parse('(/books/book/chapter)[7]');
+		
+		assert.equal(parenthesisWithPredicate.toString(), '(/child::books/child::book/child::chapter)[7]');
+
+        var charactersOver20 = parser.parse('heroes[age > 20] | villains[age > 20]');
+		
+		assert.equal(charactersOver20.toString(), 'child::heroes[(child::age > 20)] | child::villains[(child::age > 20)]');
+		
+        test.done();
+    } 
 }

@@ -107,6 +107,65 @@ var xpath = (typeof exports === 'undefined') ? {} : exports;
 (function(exports) {
 "use strict";
 
+// functional helpers
+function curry( func ) {
+    var slice = Array.prototype.slice,
+        totalargs = func.length,
+        partial = function( args, fn ) {
+            return function( ) {
+                return fn.apply( {}, args.concat( slice.call( arguments ) ) );
+            }
+        },
+        fn = function( ) {
+            var args = slice.call( arguments );
+            return ( args.length < totalargs ) ?
+                partial( args, fn ) :
+                func.apply( {}, slice.apply( arguments, [ 0, totalargs ] ) );
+        };
+    return fn;
+}
+
+var forEach = curry(function (f, xs) {
+	for (var i = 0; i < xs.length; i += 1) {
+		f(xs[i], i, xs);
+	}
+});
+
+var reduce = curry(function (f, seed, xs) {
+	var acc = seed;
+
+	forEach(function (x) { acc = f(acc, x); }, xs);
+
+	return acc;
+});
+
+var map = curry(function (f, xs) { 
+	var mapped = new Array(xs.length);
+	
+	forEach(function (x, i) { mapped[i] = f(x); }, xs);
+
+	return mapped;
+});
+
+function compose() {
+    if (arguments.length === 0) { throw new Error('compose requires at least one argument'); }
+
+    var funcs = Array.prototype.slice.call(arguments).reverse();
+	
+    var f0 = funcs[0];
+    var fRem = funcs.slice(1);
+
+    return function () {
+        return reduce(function (acc, next) {
+            return next(acc);
+        }, f0.apply(null, arguments), fRem);
+    };
+}
+
+function toString (x) { return x.toString(); }
+var join = curry(function (s, xs) { return xs.join(s); });
+var wrap = curry(function (pref, suf, str) { return pref + str + suf; });
+
 // XPathParser ///////////////////////////////////////////////////////////////
 
 XPathParser.prototype = new Object();
@@ -1641,7 +1700,7 @@ BarOperation.prototype.evaluate = function(c) {
 };
 
 BarOperation.prototype.toString = function() {
-	return this.lhs.toString() + " | " + this.rhs.toString();
+	return map(toString, [this.lhs, this.rhs]).join(' | ');
 };
 
 // PathExpr //////////////////////////////////////////////////////////////////
@@ -1993,26 +2052,29 @@ PathExpr.prototype.predicateMatches = function(pred, c) {
 	return res.booleanValue();
 };
 
+PathExpr.predicateString = compose(wrap('[', ']'), toString);
+PathExpr.predicatesString = compose(join(''), map(PathExpr.predicateString));
+
 PathExpr.prototype.toString = function() {
 	if (this.filter != undefined) {
-		var s = this.filter.toString();
+		var filterStr = toString(this.filter);
+
 		if (Utilities.instance_of(this.filter, XString)) {
-			s = "'" + s + "'";
+			return wrap("'", "'", filterStr);
 		}
-		if (this.filterPredicates != undefined) {
-			for (var i = 0; i < this.filterPredicates.length; i++) {
-				s = s + "[" + this.filterPredicates[i].toString() + "]";
-			}
+		if (this.filterPredicates != undefined && this.filterPredicates.length) {
+			return wrap('(', ')', filterStr) + 
+			    PathExpr.predicatesString(this.filterPredicates);
 		}
 		if (this.locationPath != undefined) {
-			if (!this.locationPath.absolute) {
-				s += "/";
-			}
-			s += this.locationPath.toString();
+			return filterStr + 
+			    (this.locationPath.absolute ? '' : '/') +
+				toString(this.locationPath);
 		}
-		return s;
+
+		return filterStr;
 	}
-	return this.locationPath.toString();
+	return toString(this.locationPath);
 };
 
 PathExpr.prototype.getOwnerElement = function(n) {
@@ -2063,19 +2125,10 @@ LocationPath.prototype.init = function(abs, steps) {
 };
 
 LocationPath.prototype.toString = function() {
-	var s;
-	if (this.absolute) {
-		s = "/";
-	} else {
-		s = "";
-	}
-	for (var i = 0; i < this.steps.length; i++) {
-		if (i != 0) {
-			s += "/";
-		}
-		s += this.steps[i].toString();
-	}
-	return s;
+	return (
+	    (this.absolute ? '/' : '') +
+		map(toString, this.steps).join('/')
+    );
 };
 
 // Step //////////////////////////////////////////////////////////////////////
@@ -2097,55 +2150,12 @@ Step.prototype.init = function(axis, nodetest, preds) {
 };
 
 Step.prototype.toString = function() {
-	var s;
-	switch (this.axis) {
-		case Step.ANCESTOR:
-			s = "ancestor";
-			break;
-		case Step.ANCESTORORSELF:
-			s = "ancestor-or-self";
-			break;
-		case Step.ATTRIBUTE:
-			s = "attribute";
-			break;
-		case Step.CHILD:
-			s = "child";
-			break;
-		case Step.DESCENDANT:
-			s = "descendant";
-			break;
-		case Step.DESCENDANTORSELF:
-			s = "descendant-or-self";
-			break;
-		case Step.FOLLOWING:
-			s = "following";
-			break;
-		case Step.FOLLOWINGSIBLING:
-			s = "following-sibling";
-			break;
-		case Step.NAMESPACE:
-			s = "namespace";
-			break;
-		case Step.PARENT:
-			s = "parent";
-			break;
-		case Step.PRECEDING:
-			s = "preceding";
-			break;
-		case Step.PRECEDINGSIBLING:
-			s = "preceding-sibling";
-			break;
-		case Step.SELF:
-			s = "self";
-			break;
-	}
-	s += "::";
-	s += this.nodeTest.toString();
-	for (var i = 0; i < this.predicates.length; i++) {
-		s += "[" + this.predicates[i].toString() + "]";
-	}
-	return s;
+	return Step.STEPNAMES[this.axis] +
+        "::" +
+        this.nodeTest.toString() +
+	    PathExpr.predicatesString(this.predicates);
 };
+
 
 Step.ANCESTOR = 0;
 Step.ANCESTORORSELF = 1;
@@ -2161,6 +2171,22 @@ Step.PRECEDING = 10;
 Step.PRECEDINGSIBLING = 11;
 Step.SELF = 12;
 
+Step.STEPNAMES = reduce(function (acc, x) { return acc[x[0]] = x[1], acc; }, {}, [
+	[Step.ANCESTOR, 'ancestor'],
+	[Step.ANCESTORORSELF, 'ancestor-or-self'],
+	[Step.ATTRIBUTE, 'attribute'],
+	[Step.CHILD, 'child'],
+	[Step.DESCENDANT, 'descendant'],
+	[Step.DESCENDANTORSELF, 'descendant-or-self'],
+	[Step.FOLLOWING, 'following'],
+	[Step.FOLLOWINGSIBLING, 'following-sibling'],
+	[Step.NAMESPACE, 'namespace'],
+	[Step.PARENT, 'parent'],
+	[Step.PRECEDING, 'preceding'],
+	[Step.PRECEDINGSIBLING, 'preceding-sibling'],
+	[Step.SELF, 'self']
+  ]);
+  
 // NodeTest //////////////////////////////////////////////////////////////////
 
 NodeTest.prototype = new Object();
