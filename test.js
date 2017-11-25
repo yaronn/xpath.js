@@ -2,6 +2,8 @@ var xpath = require('./xpath.js')
 , dom = require('xmldom').DOMParser
 , assert = require('assert');
 
+var xhtmlNs = 'http://www.w3.org/1999/xhtml';
+
 module.exports = {
 	'api': function(test) {
 		assert.ok(xpath.evaluate, 'evaluate api ok.');
@@ -995,15 +997,16 @@ module.exports = {
 	}
 	
 	,'should allow null namespaces for null prefixes': function (test) {
-		var doc = new dom().parseFromString('<html><head></head><body><p>Hi Ron!</p><my:p xmlns:my="http://www.example.com/my">Hi Draco!</p><p>Hi Hermione!</p></body></html>', 'text/html');
+		var markup = '<html><head></head><body><p>Hi Ron!</p><my:p xmlns:my="http://www.example.com/my">Hi Draco!</p><p>Hi Hermione!</p></body></html>';
+		var docHtml = new dom().parseFromString(markup, 'text/html');
 		
 		var noPrefixPath = xpath.parse('/html/body/p[2]');
 		
-		var greetings1 = noPrefixPath.select({ node: doc });
+		var greetings1 = noPrefixPath.select({ node: docHtml, allowAnyNamespaceForNoPrefix: false });
 		
 		assert.equal(0, greetings1.length);
 		
-		var allowAnyNamespaceOptions = { node: doc, allowAnyNamespaceForNoPrefix: true };
+		var allowAnyNamespaceOptions = { node: docHtml, allowAnyNamespaceForNoPrefix: true };
 		
 		// if allowAnyNamespaceForNoPrefix specified, allow using prefix-less node tests to match nodes with no prefix
 		var greetings2 = noPrefixPath.select(allowAnyNamespaceOptions);
@@ -1015,10 +1018,10 @@ module.exports = {
 		
 		assert.equal(2, allGreetings.length);
 		
-		var nsm = { html: 'http://www.w3.org/1999/xhtml', other: 'http://www.example.com/other' };
+		var nsm = { html: xhtmlNs, other: 'http://www.example.com/other' };
 		
 		var prefixPath = xpath.parse('/html:html/body/html:p');
-		var optionsWithNamespaces = { node: doc, allowAnyNamespaceForNoPrefix: true, namespaces: nsm };
+		var optionsWithNamespaces = { node: docHtml, allowAnyNamespaceForNoPrefix: true, namespaces: nsm };
 		
 		// if the path uses prefixes, they have to match
 		var greetings3 = prefixPath.select(optionsWithNamespaces);
@@ -1029,6 +1032,40 @@ module.exports = {
 		
 		var greetings4 = badPrefixPath.select(optionsWithNamespaces);
 	
+		test.done();
+	}
+	
+	,'support isHtml option' : function (test){
+		var markup = '<html><head></head><body><p>Hi Ron!</p><my:p xmlns:my="http://www.example.com/my">Hi Draco!</p><p>Hi Hermione!</p></body></html>';
+		var docHtml = new dom().parseFromString(markup, 'text/html');
+		
+		var ns = { h: xhtmlNs };
+		
+		// allow matching on unprefixed nodes
+		var greetings1 = xpath.parse('/html/body/p').select({ node: docHtml, isHtml: true });
+		
+		assert.equal(2, greetings1.length);
+		
+		// allow case insensitive match
+		var greetings2 = xpath.parse('/h:html/h:bOdY/h:p').select({ node: docHtml, namespaces: ns, isHtml: true });
+		
+		assert.equal(2, greetings2.length);
+		
+		// non-html mode: allow select if case and namespaces match
+		var greetings3 = xpath.parse('/h:html/h:body/h:p').select({ node: docHtml, namespaces: ns });
+
+        assert.equal(2, greetings3.length);
+		
+		// non-html mode: require namespaces
+		var greetings4 = xpath.parse('/html/body/p').select({ node: docHtml, namespaces: ns });
+
+        assert.equal(0, greetings4.length);
+		
+		// non-html mode: require case to match
+		var greetings5 = xpath.parse('/h:html/h:bOdY/h:p').select({ node: docHtml, namespaces: ns });
+
+        assert.equal(0, greetings5.length);
+		
 		test.done();
 	}
 }

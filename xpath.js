@@ -1300,22 +1300,26 @@ XPath.prototype.toString = function() {
 	return this.expression.toString();
 };
 
+function setIfUnset(obj, prop, value) {
+	if (!(prop in obj)) {
+		obj[prop] = value;
+	}
+}
+
 XPath.prototype.evaluate = function(c) {
 	c.contextNode = c.expressionContextNode;
 	c.contextSize = 1;
 	c.contextPosition = 1;
-	c.caseInsensitive = false;
-	if (c.contextNode != null) {
-		var doc = c.contextNode;
-		if (doc.nodeType != 9 /*Node.DOCUMENT_NODE*/) {
-			doc = doc.ownerDocument;
-		}
-		try {
-			c.caseInsensitive = doc.implementation.hasFeature("HTML", "2.0");
-		} catch (e) {
-			c.caseInsensitive = true;
-		}
+
+	// [2017-11-25] Removed usage of .implementation.hasFeature() since it does
+	//              not reliably detect HTML DOMs (always returns false in xmldom and true in browsers)
+	if (c.isHtml) {
+		setIfUnset(c, 'caseInsensitive', true);
+		setIfUnset(c, 'allowAnyNamespaceForNoPrefix', true);
 	}
+	
+    setIfUnset(c, 'caseInsensitive', false);
+
 	return this.expression.evaluate(c);
 };
 
@@ -4295,8 +4299,26 @@ function XPathExpression(e, r, p) {
 	this.context.namespaceResolver = new XPathNSResolverWrapper(r);
 }
 
+XPathExpression.getOwnerDocument = function (n) {
+	return n.nodeType === 9 /*Node.DOCUMENT_NODE*/ ? n : n.ownerDocument;
+}
+
+XPathExpression.detectHtmlDom = function (n) {
+	if (!n) { return false; }
+	
+	var doc = XPathExpression.getOwnerDocument(n);
+	
+	try {
+		return doc.implementation.hasFeature("HTML", "2.0");
+	} catch (e) {
+		return true;
+	}
+}
+
 XPathExpression.prototype.evaluate = function(n, t, res) {
 	this.context.expressionContextNode = n;
+	this.context.caseInsensitive = XPathExpression.detectHtmlDom(n);
+	
 	var result = this.xpath.evaluate(this.context);
 	return new XPathResult(result, t);
 }
@@ -4607,6 +4629,10 @@ installDOM3XPathSupport(exports, new XPathParser());
 
         return defaultVariableResolver;
     }
+	
+	function copyIfPresent(prop, dest, source) {
+		if (prop in source) { dest[prop] = source[prop]; }
+	}
 
     function makeContext(options) {
         var context = new XPathContext();
@@ -4615,8 +4641,9 @@ installDOM3XPathSupport(exports, new XPathParser());
             context.namespaceResolver = makeNSResolver(options.namespaces);
             context.functionResolver = makeFunctionResolver(options.functions);
             context.variableResolver = makeVariableResolver(options.variables);
-            context.expressionContextNode = options.node;
-			context.allowAnyNamespaceForNoPrefix = options.allowAnyNamespaceForNoPrefix;
+			context.expressionContextNode = options.node;
+			copyIfPresent('allowAnyNamespaceForNoPrefix', context, options);
+			copyIfPresent('isHtml', context, options);
         } else {
             context.namespaceResolver = defaultNSResolver;
         }
