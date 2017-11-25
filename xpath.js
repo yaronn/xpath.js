@@ -2081,16 +2081,8 @@ PathExpr.applyLocationPath = function (locationPath, xpc, nodes) {
 };
 
 PathExpr.prototype.evaluate = function(c) {
-	var nodes;
-	var xpc = new XPathContext();
+	var xpc = assign(new XPathContext(), c);
 	
-	xpc.variableResolver = c.variableResolver;
-	xpc.functionResolver = c.functionResolver;
-	xpc.namespaceResolver = c.namespaceResolver;
-	xpc.expressionContextNode = c.expressionContextNode;
-	xpc.virtualRoot = c.virtualRoot;
-	xpc.caseInsensitive = c.caseInsensitive;
-
     var filterResult = this.applyFilter(c, xpc);
 	
 	if ('nonNodes' in filterResult) {
@@ -2104,10 +2096,10 @@ PathExpr.prototype.evaluate = function(c) {
 
 PathExpr.predicateMatches = function(pred, c) {
 	var res = pred.evaluate(c);
-	if (Utilities.instance_of(res, XNumber)) {
-		return c.contextPosition == res.numberValue();
-	}
-	return res.booleanValue();
+	
+	return Utilities.instance_of(res, XNumber)
+		? c.contextPosition == res.numberValue()
+		: res.booleanValue();
 };
 
 PathExpr.predicateString = compose(wrap('[', ']'), toString);
@@ -2132,6 +2124,7 @@ PathExpr.prototype.toString = function() {
 
 		return filterStr;
 	}
+
 	return toString(this.locationPath);
 };
 
@@ -2302,11 +2295,17 @@ NodeTest.makeNodeTypeTest = function (type, nodeTypes, stringVal) {
 	}))();
 };
 
+NodeTest.hasPrefix = function (node) {
+	return node.prefix || (node.nodeName || node.tagName).indexOf(':') !== -1;
+};
+
 NodeTest.isElementOrAttribute = NodeTest.isNodeType([1, 2]);
 NodeTest.nameSpaceMatches = function (prefix, xpc, n) {
 	var nNamespace = (n.namespaceURI || '');
 	
-	if (!prefix) { return !nNamespace; }
+	if (!prefix) { 
+	    return !nNamespace || (xpc.allowAnyNamespaceForNoPrefix && !NodeTest.hasPrefix(n)); 
+	}
 	
     var ns = xpc.namespaceResolver.getNamespace(prefix, xpc.expressionContextNode);
 
@@ -4617,6 +4616,7 @@ installDOM3XPathSupport(exports, new XPathParser());
             context.functionResolver = makeFunctionResolver(options.functions);
             context.variableResolver = makeVariableResolver(options.variables);
             context.expressionContextNode = options.node;
+			context.allowAnyNamespaceForNoPrefix = options.allowAnyNamespaceForNoPrefix;
         } else {
             context.namespaceResolver = defaultNSResolver;
         }
