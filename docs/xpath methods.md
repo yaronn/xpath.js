@@ -8,16 +8,16 @@ Creates a parsed expression. See the [documentation page](parsed%20expressions.m
 
 ### `xpath.select(expression[, node[, single]])`
 
-Evaluates an XPath expression and returns the result. The return value is determined based on the result type of the expression (which can always be predicted ahead of time):
+Evaluates an XPath expression and returns the result. The return value is determined based on the result type of the expression (which can always be predicted ahead of time based on the expression's syntax):
 
 - A boolean value if the expression evaluates to a boolean value.
 - A number if the expression evaluates to a numeric value.
 - A string if the expression evaluates to a string.
 - If the expression evaluates to a nodeset:
-  - An array of nodes if `single` is unspecified or falsy
+  - An array of 0 or more nodes if `single` is unspecified or falsy
   - A single node (the first node in document order) or `undefined` if `single` is truthy
   
-`node` is optional and if specified, is used as the context node for evaluating the expression. (It is necessary if the expression includes any node tests.)
+`node` is optional and if specified, is used as the context node for evaluating the expression. (It is necessary if the expression makes use of the current contex.)
 
 `single` is optional and is ignored if the expression evaluates to anything other than a nodeset.
 

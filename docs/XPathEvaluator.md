@@ -4,11 +4,11 @@ The `xpath.parse()` method returns an `XPathEvaluator`, which contains the follo
 
 Each of these methods takes an optional `options` object, which can contain any of the following properties:
 
-`namespaces` - a namespace resolver. See the [documentation page](namespace resolvers.md) for details.
+`namespaces` - a namespace resolver. See the [documentation page](namespace%20resolvers.md) for details.
 
-`variables` - a variable resolver. See the [documentation page](variable resolvers.md) for details.
+`variables` - a variable resolver. See the [documentation page](variable%20resolvers.md) for details.
 
-`functions` - a function resolver. See the [documentation page](function resolvers.md) for details.
+`functions` - a function resolver. See the [documentation page](function%20resolvers.md) for details.
 
 `node` - the context node for evaluating the expression
 
@@ -19,7 +19,7 @@ var evaluator = xpath.parse('/characters/character[@greeting = $greeting]');
 var character = evaluator.select1({
     node: myCharacterDoc,
     variables: {
-        greeting: 'Hello, I'm Harry, Harry Potter.`
+        greeting: "Hello, I'm Harry, Harry Potter."
     }
 });
 ```
@@ -28,7 +28,7 @@ var character = evaluator.select1({
 
 `evaluate([options])`
 
-Evaluates the XPath expression and returns the result. The resulting type is determined based on the type of the expression, using the same criteria as [`xpath.select`](xpath methods.md).
+Evaluates the XPath expression and returns the result. The resulting type is determined based on the type of the expression, using the same criteria as [`xpath.select`](xpath%20methods.md).
 
 `evaluateNumber([options])`
 
@@ -45,12 +45,6 @@ Evaluates the XPath expression and returns the result as a boolean value.
 `evaluateNodeSet([options])`
 
 Evaluates the XPath expression and returns the result as an XNodeSet. See the [documentation page](#) for details on this interface.
-
-This is only valid for expressions that evaluate to a node set.
-
-`select([options])`
-
-Evaluates the XPath expression and returns an array of the resulting nodes, in document order.
 
 This is only valid for expressions that evaluate to a node set.
 
