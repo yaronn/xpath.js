@@ -993,42 +993,4 @@ module.exports = {
 		
 		test.done();
 	}
-	
-	,'should allow null namespaces for null prefixes': function (test) {
-		var doc = new dom().parseFromString('<html><head></head><body><p>Hi Ron!</p><my:p xmlns:my="http://www.example.com/my">Hi Draco!</p><p>Hi Hermione!</p></body></html>', 'text/html');
-		
-		var noPrefixPath = xpath.parse('/html/body/p[2]');
-		
-		var greetings1 = noPrefixPath.select({ node: doc });
-		
-		assert.equal(0, greetings1.length);
-		
-		var allowAnyNamespaceOptions = { node: doc, allowAnyNamespaceForNoPrefix: true };
-		
-		// if allowAnyNamespaceForNoPrefix specified, allow using prefix-less node tests to match nodes with no prefix
-		var greetings2 = noPrefixPath.select(allowAnyNamespaceOptions);
-		
-		assert.equal(1, greetings2.length);
-		assert.equal('Hi Hermione!', greetings2[0].textContent);
-
-		var allGreetings = xpath.parse('/html/body/p').select(allowAnyNamespaceOptions);
-		
-		assert.equal(2, allGreetings.length);
-		
-		var nsm = { html: 'http://www.w3.org/1999/xhtml', other: 'http://www.example.com/other' };
-		
-		var prefixPath = xpath.parse('/html:html/body/html:p');
-		var optionsWithNamespaces = { node: doc, allowAnyNamespaceForNoPrefix: true, namespaces: nsm };
-		
-		// if the path uses prefixes, they have to match
-		var greetings3 = prefixPath.select(optionsWithNamespaces);
-		
-		assert.equal(2, greetings3.length);
-	
-        var badPrefixPath = xpath.parse('/html:html/other:body/html:p');
-		
-		var greetings4 = badPrefixPath.select(optionsWithNamespaces);
-	
-		test.done();
-	}
 }
