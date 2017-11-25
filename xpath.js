@@ -134,7 +134,7 @@ var forEach = curry(function (f, xs) {
 var reduce = curry(function (f, seed, xs) {
 	var acc = seed;
 
-	forEach(function (x) { acc = f(acc, x); }, xs);
+	forEach(function (x, i) { acc = f(acc, x, i); }, xs);
 
 	return acc;
 });
@@ -2846,6 +2846,9 @@ XBoolean.prototype.greaterthanorequal = function(r) {
 	return this.number().greaterthanorequal(r);
 };
 
+XBoolean.true_ = new XBoolean(true);
+XBoolean.false_ = new XBoolean(false);
+
 // AVLTree ///////////////////////////////////////////////////////////////////
 
 AVLTree.prototype = new Object();
@@ -3432,19 +3435,19 @@ NamespaceResolver.prototype.getNamespace = function(prefix, n) {
 
 var Functions = new Object();
 
-Functions.last = function() {
-	var c = arguments[0];
+Functions.last = function(c) {
 	if (arguments.length != 1) {
 		throw new Error("Function last expects ()");
 	}
+
 	return new XNumber(c.contextSize);
 };
 
-Functions.position = function() {
-	var c = arguments[0];
+Functions.position = function(c) {
 	if (arguments.length != 1) {
 		throw new Error("Function position expects ()");
 	}
+
 	return new XNumber(c.contextPosition);
 };
 
@@ -3490,16 +3493,17 @@ Functions.id = function() {
 	return ns;
 };
 
-Functions.localName = function() {
-	var c = arguments[0];
+Functions.localName = function(c, eNode) {
 	var n;
+	
 	if (arguments.length == 1) {
 		n = c.contextNode;
 	} else if (arguments.length == 2) {
-		n = arguments[1].evaluate(c).first();
+		n = eNode.evaluate(c).first();
 	} else {
 		throw new Error("Function local-name expects (node-set?)");
 	}
+	
 	if (n == null) {
 		return new XString("");
 	}
@@ -3563,10 +3567,9 @@ Functions.string = function() {
 	throw new Error("Function string expects (object?)");
 };
 
-Functions.concat = function() {
-	var c = arguments[0];
+Functions.concat = function(c) {
 	if (arguments.length < 3) {
-		throw new Error("Function concat expects (string, string, string*)");
+		throw new Error("Function concat expects (string, string[, string]*)");
 	}
 	var s = "";
 	for (var i = 1; i < arguments.length; i++) {
@@ -3679,32 +3682,26 @@ Functions.normalizeSpace = function() {
 	return new XString(t);
 };
 
-Functions.translate = function() {
-	var c = arguments[0];
+Functions.translate = function(c, eValue, eFrom, eTo) {
 	if (arguments.length != 4) {
 		throw new Error("Function translate expects (string, string, string)");
 	}
-	var s1 = arguments[1].evaluate(c).stringValue();
-	var s2 = arguments[2].evaluate(c).stringValue();
-	var s3 = arguments[3].evaluate(c).stringValue();
-	var map = [];
-	for (var i = 0; i < s2.length; i++) {
-		var j = s2.charCodeAt(i);
-		if (map[j] == undefined) {
-			var k = i > s3.length ? "" : s3.charAt(i);
-			map[j] = k;
+
+	var value = eValue.evaluate(c).stringValue();
+	var from = eFrom.evaluate(c).stringValue();
+	var to = eTo.evaluate(c).stringValue();
+	
+	var cMap = reduce(function (acc, ch, i) {
+		if (!(ch in acc)) {
+			acc[ch] = i > to.length ? '' : to[i];
 		}
-	}
-	var t = "";
-	for (var i = 0; i < s1.length; i++) {
-		var c = s1.charCodeAt(i);
-		var r = map[c];
-		if (r == undefined) {
-			t += s1.charAt(i);
-		} else {
-			t += r;
-		}
-	}
+		return acc;
+	}, {}, from);
+
+    var t = join('', map(function (ch) {
+        return ch in cMap ? cMap[ch] : ch;
+    }, value));
+
 	return new XString(t);
 };
 
@@ -3716,26 +3713,25 @@ Functions.boolean_ = function() {
 	return arguments[1].evaluate(c).bool();
 };
 
-Functions.not = function() {
-	var c = arguments[0];
+Functions.not = function(c, eValue) {
 	if (arguments.length != 2) {
 		throw new Error("Function not expects (object)");
 	}
-	return arguments[1].evaluate(c).bool().not();
+	return eValue.evaluate(c).bool().not();
 };
 
 Functions.true_ = function() {
 	if (arguments.length != 1) {
 		throw new Error("Function true expects ()");
 	}
-	return new XBoolean(true);
+	return XBoolean.true_;
 };
 
 Functions.false_ = function() {
 	if (arguments.length != 1) {
 		throw new Error("Function false expects ()");
 	}
-	return new XBoolean(false);
+	return XBoolean.false_;
 };
 
 Functions.lang = function() {
@@ -3752,7 +3748,7 @@ Functions.lang = function() {
 		}
 	}
 	if (lang == null) {
-		return new XBoolean(false);
+		return XBoolean.false_;
 	}
 	var s = arguments[1].evaluate(c).stringValue();
 	return new XBoolean(lang.substring(0, s.length) == s
@@ -4317,6 +4313,9 @@ XPathExpression.detectHtmlDom = function (n) {
 
 XPathExpression.prototype.evaluate = function(n, t, res) {
 	this.context.expressionContextNode = n;
+	// backward compatibility - no reliable way to detect whether the DOM is HTML, but
+	// this library has been using this method up until now, so we will continue to use it
+	// ONLY when using an XPathExpression
 	this.context.caseInsensitive = XPathExpression.detectHtmlDom(n);
 	
 	var result = this.xpath.evaluate(this.context);

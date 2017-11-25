@@ -1068,4 +1068,25 @@ module.exports = {
 		
 		test.done();
 	}
+	
+	,"builtin functions": function (test) {
+		var translated = xpath.parse('translate("hello", "lhho", "yHb")').evaluateString();
+		
+		assert.equal('Heyy', translated);
+		
+		var characters = new dom().parseFromString('<characters><character>Harry</character><character>Ron</character><character>Hermione</character></characters>');
+		
+		var firstTwo = xpath.parse('/characters/character[position() <= 2]').select({ node: characters });
+		
+		assert.equal(2, firstTwo.length);
+		assert.equal('Harry', firstTwo[0].textContent);
+		assert.equal('Ron', firstTwo[1].textContent);
+
+		var last = xpath.parse('/characters/character[last()]').select({ node: characters });
+		
+		assert.equal(1, last.length);
+		assert.equal('Hermione', last[0].textContent);
+		
+		test.done();
+	}
 }
