@@ -2,15 +2,15 @@
 
 The `xpath.parse()` method returns an `XPathEvaluator`, which contains the following methods.
 
-Each of these methods takes an optional `options` object, which can contain any of the following properties:
+Each of these methods takes an optional `options` object, which can contain any of the following properties. See the links for each item for further details:
 
-`namespaces` - a namespace resolver. See the [documentation page](namespace%20resolvers.md) for details.
+- `namespaces` - a [namespace resolver](namespace%20resolvers.md)
 
-`variables` - a variable resolver. See the [documentation page](variable%20resolvers.md) for details.
+- `variables` - a [variable resolver](variable%20resolvers.md)
 
-`functions` - a function resolver. See the [documentation page](function%20resolvers.md) for details.
+- `functions` - a [function resolver](function%20resolvers.md)
 
-`node` - the context node for evaluating the expression
+- `node` - the context node for evaluating the expression
 
 Example usage: 
 
