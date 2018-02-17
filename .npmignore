@@ -1,0 +1,3 @@
+# .npmignore file
+tests/
+*.test.js
