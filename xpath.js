@@ -4730,25 +4730,54 @@ var xpath = (typeof exports === 'undefined') ? {} : exports;
         exports.parse = parse;
     })();
 
-    exports.XPath = XPath;
-    exports.XPathParser = XPathParser;
-    exports.XPathResult = XPathResult;
+    assign(
+        exports,
+        {
+            XPath,
+            XPathParser,
+            XPathResult,
 
-    exports.Step = Step;
-    exports.NodeTest = NodeTest;
-    exports.BarOperation = BarOperation;
+            Step,
+            PathExpr,
+            NodeTest,
+            LocationPath,
 
-    exports.NamespaceResolver = NamespaceResolver;
-    exports.FunctionResolver = FunctionResolver;
-    exports.VariableResolver = VariableResolver;
+            OrOperation,
+            AndOperation,
 
-    exports.Utilities = Utilities;
+            BarOperation,
 
-    exports.XPathContext = XPathContext;
-    exports.XNodeSet = XNodeSet;
-    exports.XBoolean = XBoolean;
-    exports.XString = XString;
-    exports.XNumber = XNumber;
+            EqualsOperation,
+            NotEqualOperation,
+            LessThanOperation,
+            GreaterThanOperation,
+            LessThanOrEqualOperation,
+            GreaterThanOrEqualOperation,
+
+            PlusOperation,
+            MinusOperation,
+            MultiplyOperation,
+            DivOperation,
+            ModOperation,
+            UnaryMinusOperation,
+
+            FunctionCall,
+            VariableReference,
+
+            XPathContext,
+
+            XNodeSet,
+            XBoolean,
+            XString,
+            XNumber,
+
+            NamespaceResolver,
+            FunctionResolver,
+            VariableResolver,
+
+            Utilities,
+        }
+    );
 
     // helper
     exports.select = function (e, doc, single) {

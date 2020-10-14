@@ -17,25 +17,25 @@ describe('xpath', () => {
             var doc = new dom().parseFromString(xml);
             var nodes = xpath.evaluate('//title', doc, null, xpath.XPathResult.ANY_TYPE, null).nodes;
 
-            assert.equal('title', nodes[0].localName);
-            assert.equal('Harry Potter', nodes[0].firstChild.data);
-            assert.equal('<title>Harry Potter</title>', nodes[0].toString());
+            assert.strictEqual('title', nodes[0].localName);
+            assert.strictEqual('Harry Potter', nodes[0].firstChild.data);
+            assert.strictEqual('<title>Harry Potter</title>', nodes[0].toString());
         });
 
         it('should support .select()', () => {
             var xml = '<?book title="Harry Potter"?><?series title="Harry Potter"?><?series books="7"?><book><!-- This is a great book --><title>Harry Potter</title></book>';
             var doc = new dom().parseFromString(xml);
             var nodes = xpath.select('//title', doc);
-            assert.equal('title', nodes[0].localName);
-            assert.equal('Harry Potter', nodes[0].firstChild.data);
-            assert.equal('<title>Harry Potter</title>', nodes[0].toString());
+            assert.strictEqual('title', nodes[0].localName);
+            assert.strictEqual('Harry Potter', nodes[0].firstChild.data);
+            assert.strictEqual('<title>Harry Potter</title>', nodes[0].toString());
 
             var nodes2 = xpath.select('//node()', doc);
-            assert.equal(7, nodes2.length);
+            assert.strictEqual(7, nodes2.length);
 
             var pis = xpath.select("/processing-instruction('series')", doc);
-            assert.equal(2, pis.length);
-            assert.equal('books="7"', pis[1].data);
+            assert.strictEqual(2, pis.length);
+            assert.strictEqual('books="7"', pis[1].data);
         });
     });
 
@@ -61,7 +61,7 @@ describe('xpath', () => {
             var xml = '<book><title>Harry Potter</title></book>';
             var doc = new dom().parseFromString(xml);
 
-            assert.equal('title', xpath.select('//title[1]', doc)[0].localName);
+            assert.strictEqual('title', xpath.select('//title[1]', doc)[0].localName);
         });
 
         it('should select text nodes', () => {
@@ -84,12 +84,12 @@ describe('xpath', () => {
             var doc = new dom().parseFromString(xml);
 
             var nodes = xpath.select('//*[local-name(.)="title" and namespace-uri(.)="myns"]', doc);
-            assert.equal('title', nodes[0].localName);
-            assert.equal('myns', nodes[0].namespaceURI);
+            assert.strictEqual('title', nodes[0].localName);
+            assert.strictEqual('myns', nodes[0].namespaceURI);
 
             var nodes2 = xpath.select('/*/title', doc);
 
-            assert.equal(0, nodes2.length);
+            assert.strictEqual(0, nodes2.length);
         });
 
         it('should select with namespaces, using a resolver', () => {
@@ -106,13 +106,13 @@ describe('xpath', () => {
             };
 
             var nodes = xpath.selectWithResolver('//testns:title/text()', doc, resolver);
-            assert.equal('Harry Potter', nodes[0].nodeValue);
+            assert.strictEqual('Harry Potter', nodes[0].nodeValue);
 
-            assert.equal('JKR', xpath.selectWithResolver('//testns:field[@testns:type="author"]/text()', doc, resolver)[0].nodeValue);
+            assert.strictEqual('JKR', xpath.selectWithResolver('//testns:field[@testns:type="author"]/text()', doc, resolver)[0].nodeValue);
 
             var nodes2 = xpath.selectWithResolver('/*/testns:*', doc, resolver);
 
-            assert.equal(2, nodes2.length);
+            assert.strictEqual(2, nodes2.length);
         });
 
         it('should select from xml with a default namespace, using a resolver', () => {
@@ -129,8 +129,8 @@ describe('xpath', () => {
             }
 
             var nodes = xpath.selectWithResolver('//testns:title/text()', doc, resolver);
-            assert.equal('Harry Potter', xpath.selectWithResolver('//testns:title/text()', doc, resolver)[0].nodeValue);
-            assert.equal('JKR', xpath.selectWithResolver('//testns:field[@type="author"]/text()', doc, resolver)[0].nodeValue);
+            assert.strictEqual('Harry Potter', xpath.selectWithResolver('//testns:title/text()', doc, resolver)[0].nodeValue);
+            assert.strictEqual('JKR', xpath.selectWithResolver('//testns:field[@type="author"]/text()', doc, resolver)[0].nodeValue);
         });
 
         it('should select with namespaces, prefixes different in xml and xpath, using a resolver', () => {
@@ -147,9 +147,9 @@ describe('xpath', () => {
             }
 
             var nodes = xpath.selectWithResolver('//ns:title/text()', doc, resolver);
-            assert.equal('Harry Potter', nodes[0].nodeValue);
+            assert.strictEqual('Harry Potter', nodes[0].nodeValue);
 
-            assert.equal('JKR', xpath.selectWithResolver('//ns:field[@ns:type="author"]/text()', doc, resolver)[0].nodeValue);
+            assert.strictEqual('JKR', xpath.selectWithResolver('//ns:field[@ns:type="author"]/text()', doc, resolver)[0].nodeValue);
         });
 
         it('should select with namespaces, using namespace mappings', () => {
@@ -157,8 +157,8 @@ describe('xpath', () => {
             var doc = new dom().parseFromString(xml);
             var select = xpath.useNamespaces({ 'testns': 'http://example.com/test' });
 
-            assert.equal('Harry Potter', select('//testns:title/text()', doc)[0].nodeValue);
-            assert.equal('JKR', select('//testns:field[@testns:type="author"]/text()', doc)[0].nodeValue);
+            assert.strictEqual('Harry Potter', select('//testns:title/text()', doc)[0].nodeValue);
+            assert.strictEqual('JKR', select('//testns:field[@testns:type="author"]/text()', doc)[0].nodeValue);
         });
 
         it('should select attributes', () => {
@@ -166,7 +166,7 @@ describe('xpath', () => {
             var doc = new dom().parseFromString(xml);
 
             var author = xpath.select1('/author/@name', doc).value;
-            assert.equal('J. K. Rowling', author);
+            assert.strictEqual('J. K. Rowling', author);
         });
     });
 
@@ -177,8 +177,8 @@ describe('xpath', () => {
 
             var characters = xpath.select('/*/character[@sex = "M"][@age > 40]/@name', doc);
 
-            assert.equal(1, characters.length);
-            assert.equal('Snape', characters[0].textContent);
+            assert.strictEqual(1, characters.length);
+            assert.strictEqual('Snape', characters[0].textContent);
         });
 
         // https://github.com/goto100/xpath/issues/37
@@ -187,18 +187,18 @@ describe('xpath', () => {
             var doc = new dom().parseFromString(xml);
 
             var authors = xpath.select('/authors/author/@name', doc);
-            assert.equal(2, authors.length);
-            assert.equal('J. K. Rowling', authors[0].value);
+            assert.strictEqual(2, authors.length);
+            assert.strictEqual('J. K. Rowling', authors[0].value);
 
             // https://github.com/goto100/xpath/issues/41
             doc = new dom().parseFromString('<chapters><chapter v="1"/><chapter v="2"/><chapter v="3"/></chapters>');
             var nodes = xpath.select("/chapters/chapter/@v", doc);
             var values = nodes.map(function (n) { return n.value; });
 
-            assert.equal(3, values.length);
-            assert.equal("1", values[0]);
-            assert.equal("2", values[1]);
-            assert.equal("3", values[2]);
+            assert.strictEqual(3, values.length);
+            assert.strictEqual("1", values[0]);
+            assert.strictEqual("2", values[1]);
+            assert.strictEqual("3", values[2]);
         });
 
         it('should compare string values of numbers with numbers', () => {
@@ -208,9 +208,9 @@ describe('xpath', () => {
 
         it('should correctly compare strings with booleans', () => {
             // string should downcast to boolean
-            assert.equal(false, xpath.select1('"false" = false()'), '"false" = false()');
-            assert.equal(true, xpath.select1('"a" = true()'), '"a" = true()');
-            assert.equal(true, xpath.select1('"" = false()'), '"" = false()');
+            assert.strictEqual(false, xpath.select1('"false" = false()'), '"false" = false()');
+            assert.strictEqual(true, xpath.select1('"a" = true()'), '"a" = true()');
+            assert.strictEqual(true, xpath.select1('"" = false()'), '"" = false()');
         });
 
         it('should evaluate local-name() and name() on processing instructions', () => {
@@ -247,7 +247,7 @@ describe('xpath', () => {
 
             assert.ok(chapter, 'chapter');
 
-            assert.equal(xpath.select("count(preceding::chapter)", chapter), 4);
+            assert.strictEqual(xpath.select("count(preceding::chapter)", chapter), 4);
         });
 
         it('should allow getting sorted and unsorted arrays from nodesets', () => {
@@ -257,12 +257,12 @@ describe('xpath', () => {
             const sorted = nset.toArray();
             const unsorted = nset.toUnsortedArray();
 
-            assert.equal(sorted.length, 3);
-            assert.equal(unsorted.length, 3);
+            assert.strictEqual(sorted.length, 3);
+            assert.strictEqual(unsorted.length, 3);
 
-            assert.equal(sorted[0].textContent, 'Harry');
-            assert.equal(sorted[1].textContent, 'Ron');
-            assert.equal(sorted[2].textContent, 'Hermione');
+            assert.strictEqual(sorted[0].textContent, 'Harry');
+            assert.strictEqual(sorted[1].textContent, 'Ron');
+            assert.strictEqual(sorted[2].textContent, 'Hermione');
 
             assert.notEqual(sorted[0], unsorted[0], "first nodeset element equal");
         });
@@ -278,12 +278,12 @@ describe('xpath', () => {
             var doc = new dom().parseFromString(xml);
             var houses = xpath.parse('/school/houses/house[student = /school/honorStudents/student]').select({ node: doc });
 
-            assert.equal(houses.length, 2);
+            assert.strictEqual(houses.length, 2);
 
             var houseNames = houses.map(function (node) { return node.getAttribute('name'); }).sort();
 
-            assert.equal(houseNames[0], 'Gryffindor');
-            assert.equal(houseNames[1], 'Ravenclaw');
+            assert.strictEqual(houseNames[0], 'Gryffindor');
+            assert.strictEqual(houseNames[1], 'Ravenclaw');
         });
 
         it('should compare nodesets to nodesets (>=)', () => {
@@ -298,12 +298,12 @@ describe('xpath', () => {
             var doc = new dom().parseFromString(xml);
             var houses = xpath.parse('/school/houses/house[student/@level >= /school/courses/course/@minLevel]').select({ node: doc });
 
-            assert.equal(houses.length, 2);
+            assert.strictEqual(houses.length, 2);
 
             var houseNames = houses.map(function (node) { return node.getAttribute('name'); }).sort();
 
-            assert.equal(houseNames[0], 'Gryffindor');
-            assert.equal(houseNames[1], 'Ravenclaw');
+            assert.strictEqual(houseNames[0], 'Gryffindor');
+            assert.strictEqual(houseNames[1], 'Ravenclaw');
         });
 
         it('should support various inequality expressions on nodesets', () => {
@@ -356,25 +356,25 @@ describe('xpath', () => {
 
             var chapters = xpath.parse('/books/book/chapter[2]').select({ node: doc });
 
-            assert.equal(2, chapters.length);
-            assert.equal('The vanishing glass', chapters[0].textContent);
-            assert.equal("Dobby's warning", chapters[1].textContent);
+            assert.strictEqual(2, chapters.length);
+            assert.strictEqual('The vanishing glass', chapters[0].textContent);
+            assert.strictEqual("Dobby's warning", chapters[1].textContent);
 
             var lastChapters = xpath.parse('/books/book/chapter[last()]').select({ node: doc });
 
-            assert.equal(2, lastChapters.length);
-            assert.equal('The vanishing glass', lastChapters[0].textContent);
-            assert.equal("The burrow", lastChapters[1].textContent);
+            assert.strictEqual(2, lastChapters.length);
+            assert.strictEqual('The vanishing glass', lastChapters[0].textContent);
+            assert.strictEqual("The burrow", lastChapters[1].textContent);
 
             var secondChapter = xpath.parse('(/books/book/chapter)[2]').select({ node: doc });
 
-            assert.equal(1, secondChapter.length);
-            assert.equal('The vanishing glass', chapters[0].textContent);
+            assert.strictEqual(1, secondChapter.length);
+            assert.strictEqual('The vanishing glass', chapters[0].textContent);
 
             var lastChapter = xpath.parse('(/books/book/chapter)[last()]').select({ node: doc });
 
-            assert.equal(1, lastChapter.length);
-            assert.equal("The burrow", lastChapter[0].textContent);
+            assert.strictEqual(1, lastChapter.length);
+            assert.strictEqual("The burrow", lastChapter[0].textContent);
         });
     });
 
@@ -385,7 +385,7 @@ describe('xpath', () => {
             var rootElement = xpath.select1('/book', doc);
             assert.ok(rootElement, 'rootElement is null');
 
-            assert.equal('Harry Potter', xpath.select1('string()', doc));
+            assert.strictEqual('Harry Potter', xpath.select1('string()', doc));
         });
 
         it('should work on document fragments', () => {
@@ -399,32 +399,32 @@ describe('xpath', () => {
 
             el.appendChild(doc.createTextNode(testValue));
 
-            assert.equal(testValue, xpath.select1("string()", docFragment));
+            assert.strictEqual(testValue, xpath.select1("string()", docFragment));
         });
 
         it('should work correctly on boolean values', () => {
-            assert.equal('string', typeof xpath.select1('string(true())'));
-            assert.equal('string', typeof xpath.select1('string(false())'));
-            assert.equal('string', typeof xpath.select1('string(1 = 2)'));
+            assert.strictEqual('string', typeof xpath.select1('string(true())'));
+            assert.strictEqual('string', typeof xpath.select1('string(false())'));
+            assert.strictEqual('string', typeof xpath.select1('string(1 = 2)'));
             assert.ok(xpath.select1('"true" = string(true())'), '"true" = string(true())');
         });
 
         it('should work correctly on numbers', () => {
-            assert.equal('string', typeof xpath.select1('string(45)'));
+            assert.strictEqual('string', typeof xpath.select1('string(45)'));
             assert.ok(xpath.select1('"45" = string(45)'), '"45" = string(45)');
         });
     });
 
     describe('type conversion', () => {
         it('should convert strings to numbers correctly', () => {
-            assert.equal(45.2, xpath.select1('number("45.200")'));
-            assert.equal(55.0, xpath.select1('number("000055")'));
-            assert.equal(65.0, xpath.select1('number("  65  ")'));
+            assert.strictEqual(45.2, xpath.select1('number("45.200")'));
+            assert.strictEqual(55.0, xpath.select1('number("000055")'));
+            assert.strictEqual(65.0, xpath.select1('number("  65  ")'));
 
-            assert.equal(true, xpath.select1('"" != 0'), '"" != 0');
-            assert.equal(false, xpath.select1('"" = 0'), '"" = 0');
-            assert.equal(false, xpath.select1('0 = ""'), '0 = ""');
-            assert.equal(false, xpath.select1('0 = "   "'), '0 = "   "');
+            assert.strictEqual(true, xpath.select1('"" != 0'), '"" != 0');
+            assert.strictEqual(false, xpath.select1('"" = 0'), '"" = 0');
+            assert.strictEqual(false, xpath.select1('0 = ""'), '0 = ""');
+            assert.strictEqual(false, xpath.select1('0 = "   "'), '0 = "   "');
 
             assert.ok(Number.isNaN(xpath.select('number("")')), 'number("")');
             assert.ok(Number.isNaN(xpath.select('number("45.8g")')), 'number("45.8g")');
@@ -433,8 +433,8 @@ describe('xpath', () => {
         });
 
         it('should convert numbers to strings correctly', () => {
-            assert.equal('0.0000000000000000000000005250000000000001', xpath.parse('0.525 div 1000000 div 1000000 div 1000000 div 1000000').evaluateString());
-            assert.equal('525000000000000000000000', xpath.parse('0.525 * 1000000 * 1000000 * 1000000 * 1000000').evaluateString());
+            assert.strictEqual('0.0000000000000000000000005250000000000001', xpath.parse('0.525 div 1000000 div 1000000 div 1000000 div 1000000').evaluateString());
+            assert.strictEqual('525000000000000000000000', xpath.parse('0.525 * 1000000 * 1000000 * 1000000 * 1000000').evaluateString());
         });
 
         it('should provide correct string value for cdata sections', () => {
@@ -446,10 +446,10 @@ describe('xpath', () => {
             const person3 = xpath.select("string(/people/person/text())", doc);
             const person4 = xpath.parse("/people/person[2]").evaluateString({ node: doc });
 
-            assert.equal(person1, 'Harry Potter');
-            assert.equal(person2, 'Harry Potter');
-            assert.equal(person3, 'Harry Potter');
-            assert.equal(person4, 'Ron Weasley');
+            assert.strictEqual(person1, 'Harry Potter');
+            assert.strictEqual(person2, 'Harry Potter');
+            assert.strictEqual(person3, 'Harry Potter');
+            assert.strictEqual(person4, 'Ron Weasley');
         });
 
         it('should convert various node types to string values', () => {
@@ -463,23 +463,23 @@ describe('xpath', () => {
                 pi = xpath.parse('*/processing-instruction()').evaluateString({ node: doc }),
                 comment = xpath.parse('*/comment()').evaluateString({ node: doc });
 
-            assert.equal(allText, "Harry Potter & the Philosopher's StoneHarry Potter");
-            assert.equal(ns, 'http://harry');
-            assert.equal(title, "Harry Potter & the Philosopher's Stone");
-            assert.equal(child, "Harry Potter & the Philosopher's Stone");
-            assert.equal(titleLang, 'en');
-            assert.equal(pi.trim(), "name='J.K. Rowling'");
-            assert.equal(comment, ' This describes the Harry Potter Book ');
+            assert.strictEqual(allText, "Harry Potter & the Philosopher's StoneHarry Potter");
+            assert.strictEqual(ns, 'http://harry');
+            assert.strictEqual(title, "Harry Potter & the Philosopher's Stone");
+            assert.strictEqual(child, "Harry Potter & the Philosopher's Stone");
+            assert.strictEqual(titleLang, 'en');
+            assert.strictEqual(pi.trim(), "name='J.K. Rowling'");
+            assert.strictEqual(comment, ' This describes the Harry Potter Book ');
         });
 
         it('should convert booleans to numbers correctly', () => {
             var num = xpath.parse('"a" = "b"').evaluateNumber();
 
-            assert.equal(num, 0);
+            assert.strictEqual(num, 0);
 
             var str = xpath.select('substring("expelliarmus", 1, "a" = "a")');
 
-            assert.equal(str, 'e');
+            assert.strictEqual(str, 'e');
         });
     });
 
@@ -487,14 +487,14 @@ describe('xpath', () => {
         it('should work with no options', () => {
             var parsed = xpath.parse('5 + 7');
 
-            assert.equal(typeof parsed, "object", "parse() should return an object");
-            assert.equal(typeof parsed.evaluate, "function", "parsed.evaluate should be a function");
-            assert.equal(typeof parsed.evaluateNumber, "function", "parsed.evaluateNumber should be a function");
+            assert.strictEqual(typeof parsed, "object", "parse() should return an object");
+            assert.strictEqual(typeof parsed.evaluate, "function", "parsed.evaluate should be a function");
+            assert.strictEqual(typeof parsed.evaluateNumber, "function", "parsed.evaluateNumber should be a function");
 
-            assert.equal(parsed.evaluateNumber(), 12);
+            assert.strictEqual(parsed.evaluateNumber(), 12);
 
             // evaluating twice should yield the same result
-            assert.equal(parsed.evaluateNumber(), 12);
+            assert.strictEqual(parsed.evaluateNumber(), 12);
         });
 
         it('should support select1()', () => {
@@ -502,15 +502,15 @@ describe('xpath', () => {
             var doc = new dom().parseFromString(xml);
             var parsed = xpath.parse('/*/title');
 
-            assert.equal(typeof parsed, 'object', 'parse() should return an object');
+            assert.strictEqual(typeof parsed, 'object', 'parse() should return an object');
 
-            assert.equal(typeof parsed.select1, 'function', 'parsed.select1 should be a function');
+            assert.strictEqual(typeof parsed.select1, 'function', 'parsed.select1 should be a function');
 
             var single = parsed.select1({ node: doc });
 
-            assert.equal('title', single.localName);
-            assert.equal('Harry Potter', single.firstChild.data);
-            assert.equal('<title>Harry Potter</title>', single.toString());
+            assert.strictEqual('title', single.localName);
+            assert.strictEqual('Harry Potter', single.firstChild.data);
+            assert.strictEqual('<title>Harry Potter</title>', single.toString());
         });
 
         it('should support select()', () => {
@@ -518,17 +518,17 @@ describe('xpath', () => {
             var doc = new dom().parseFromString(xml);
             var parsed = xpath.parse('/*/title');
 
-            assert.equal(typeof parsed, 'object', 'parse() should return an object');
+            assert.strictEqual(typeof parsed, 'object', 'parse() should return an object');
 
-            assert.equal(typeof parsed.select, 'function', 'parsed.select should be a function');
+            assert.strictEqual(typeof parsed.select, 'function', 'parsed.select should be a function');
 
             var nodes = parsed.select({ node: doc });
 
             assert.ok(nodes, 'parsed.select() should return a value');
-            assert.equal(1, nodes.length);
-            assert.equal('title', nodes[0].localName);
-            assert.equal('Harry Potter', nodes[0].firstChild.data);
-            assert.equal('<title>Harry Potter</title>', nodes[0].toString());
+            assert.strictEqual(1, nodes.length);
+            assert.strictEqual('title', nodes[0].localName);
+            assert.strictEqual('Harry Potter', nodes[0].firstChild.data);
+            assert.strictEqual('<title>Harry Potter</title>', nodes[0].toString());
         });
 
         it('should support .evaluateString() and .evaluateNumber()', () => {
@@ -536,16 +536,16 @@ describe('xpath', () => {
             var doc = new dom().parseFromString(xml);
             var parsed = xpath.parse('/*/numVolumes');
 
-            assert.equal(typeof parsed, 'object', 'parse() should return an object');
+            assert.strictEqual(typeof parsed, 'object', 'parse() should return an object');
 
-            assert.equal(typeof parsed.evaluateString, 'function', 'parsed.evaluateString should be a function');
-            assert.equal('7', parsed.evaluateString({ node: doc }));
+            assert.strictEqual(typeof parsed.evaluateString, 'function', 'parsed.evaluateString should be a function');
+            assert.strictEqual('7', parsed.evaluateString({ node: doc }));
 
-            assert.equal(typeof parsed.evaluateBoolean, 'function', 'parsed.evaluateBoolean should be a function');
-            assert.equal(true, parsed.evaluateBoolean({ node: doc }));
+            assert.strictEqual(typeof parsed.evaluateBoolean, 'function', 'parsed.evaluateBoolean should be a function');
+            assert.strictEqual(true, parsed.evaluateBoolean({ node: doc }));
 
-            assert.equal(typeof parsed.evaluateNumber, 'function', 'parsed.evaluateNumber should be a function');
-            assert.equal(7, parsed.evaluateNumber({ node: doc }));
+            assert.strictEqual(typeof parsed.evaluateNumber, 'function', 'parsed.evaluateNumber should be a function');
+            assert.strictEqual(7, parsed.evaluateNumber({ node: doc }));
         });
 
         it('should support .evaluateBoolean()', () => {
@@ -557,17 +557,17 @@ describe('xpath', () => {
                 return xpath.parse(path).evaluateBoolean(context);
             }
 
-            assert.equal(false, evaluate('/*/myrtle'), 'boolean value of empty node set should be false');
+            assert.strictEqual(false, evaluate('/*/myrtle'), 'boolean value of empty node set should be false');
 
-            assert.equal(true, evaluate('not(/*/myrtle)'), 'not() of empty nodeset should be true');
+            assert.strictEqual(true, evaluate('not(/*/myrtle)'), 'not() of empty nodeset should be true');
 
-            assert.equal(true, evaluate('/*/title'), 'boolean value of non-empty nodeset should be true');
+            assert.strictEqual(true, evaluate('/*/title'), 'boolean value of non-empty nodeset should be true');
 
-            assert.equal(true, evaluate('/*/title = "Harry Potter"'), 'title equals Harry Potter');
+            assert.strictEqual(true, evaluate('/*/title = "Harry Potter"'), 'title equals Harry Potter');
 
-            assert.equal(false, evaluate('/*/title != "Harry Potter"'), 'title != Harry Potter should be false');
+            assert.strictEqual(false, evaluate('/*/title != "Harry Potter"'), 'title != Harry Potter should be false');
 
-            assert.equal(false, evaluate('/*/title = "Percy Jackson"'), 'title should not equal Percy Jackson');
+            assert.strictEqual(false, evaluate('/*/title = "Percy Jackson"'), 'title should not equal Percy Jackson');
         });
 
         it('should support namespaces', () => {
@@ -592,8 +592,8 @@ describe('xpath', () => {
                     var value = expr.evaluateString(context);
                     var count = countExpr.evaluateNumber(context);
 
-                    assert.equal('Myrtle', value, description + ' - string value - ' + value);
-                    assert.equal(2, count, description + ' map - count - ' + count);
+                    assert.strictEqual('Myrtle', value, description + ' - string value - ' + value);
+                    assert.strictEqual(2, count, description + ' map - count - ' + count);
                 } catch (e) {
                     e.message = description + ': ' + (e.message || '');
                     throw e;
@@ -627,7 +627,7 @@ describe('xpath', () => {
             var parsed = xpath.parse('concat(double(/*/title), " is cool")');
 
             function doubleString(context, value) {
-                assert.equal(2, arguments.length);
+                assert.strictEqual(2, arguments.length);
                 var str = value.stringValue();
                 return str + str;
             }
@@ -643,7 +643,7 @@ describe('xpath', () => {
                 try {
                     var actual = parsed.evaluateString(context);
                     var expected = 'Harry PotterHarry Potter is cool';
-                    assert.equal(expected, actual, description + ' - ' + expected + ' != ' + actual);
+                    assert.strictEqual(expected, actual, description + ' - ' + expected + ' != ' + actual);
                 } catch (e) {
                     e.message = description + ": " + (e.message || '');
                     throw e;
@@ -691,7 +691,7 @@ describe('xpath', () => {
                         switch (name) {
                             case "double":
                                 return function (context, value) {
-                                    assert.equal(2, arguments.length);
+                                    assert.strictEqual(2, arguments.length);
                                     var str = value.stringValue();
                                     return str + str;
                                 };
@@ -703,7 +703,7 @@ describe('xpath', () => {
 
                             case "xor":
                                 return function (context, l, r) {
-                                    assert.equal(3, arguments.length);
+                                    assert.strictEqual(3, arguments.length);
                                     var lbool = l.booleanValue();
                                     var rbool = r.booleanValue();
                                     return (lbool || rbool) && !(lbool && rbool);
@@ -721,16 +721,16 @@ describe('xpath', () => {
                 }
             };
 
-            assert.equal('Harry PotterHarry Potter is 2 cool 4 school', parsed.evaluateString(context));
+            assert.strictEqual('Harry PotterHarry Potter is 2 cool 4 school', parsed.evaluateString(context));
 
-            assert.equal(false, xpath.parse('hp:xor(false(), false())').evaluateBoolean(context));
-            assert.equal(true, xpath.parse('hp:xor(false(), true())').evaluateBoolean(context));
-            assert.equal(true, xpath.parse('hp:xor(true(), false())').evaluateBoolean(context));
-            assert.equal(false, xpath.parse('hp:xor(true(), true())').evaluateBoolean(context));
+            assert.strictEqual(false, xpath.parse('hp:xor(false(), false())').evaluateBoolean(context));
+            assert.strictEqual(true, xpath.parse('hp:xor(false(), true())').evaluateBoolean(context));
+            assert.strictEqual(true, xpath.parse('hp:xor(true(), false())').evaluateBoolean(context));
+            assert.strictEqual(false, xpath.parse('hp:xor(true(), true())').evaluateBoolean(context));
 
-            assert.equal('Hermione', xpath.parse('hp:second(/*/friend)').evaluateString(context));
-            assert.equal(1, xpath.parse('count(hp:second(/*/friend))').evaluateNumber(context));
-            assert.equal(0, xpath.parse('count(hp:second(/*/friendz))').evaluateNumber(context));
+            assert.strictEqual('Hermione', xpath.parse('hp:second(/*/friend)').evaluateString(context));
+            assert.strictEqual(1, xpath.parse('count(hp:second(/*/friend))').evaluateNumber(context));
+            assert.strictEqual(0, xpath.parse('count(hp:second(/*/friendz))').evaluateNumber(context));
         });
 
         it('should support xpath variables', () => {
@@ -749,9 +749,9 @@ describe('xpath', () => {
 
             function testContext(context, description) {
                 try {
-                    assert.equal(true, xpath.parse('$title = /*/title').evaluateBoolean(context));
-                    assert.equal(false, xpath.parse('$notTitle = /*/title').evaluateBoolean(context));
-                    assert.equal(11, xpath.parse('$houses + /*/volumes').evaluateNumber(context));
+                    assert.strictEqual(true, xpath.parse('$title = /*/title').evaluateBoolean(context));
+                    assert.strictEqual(false, xpath.parse('$notTitle = /*/title').evaluateBoolean(context));
+                    assert.strictEqual(11, xpath.parse('$houses + /*/volumes').evaluateNumber(context));
                 } catch (e) {
                     e.message = description + ": " + (e.message || '');
                     throw e;
@@ -805,10 +805,10 @@ describe('xpath', () => {
                 }
             };
 
-            assert.equal(true, xpath.parse('$hp:title = /*/title').evaluateBoolean(context));
-            assert.equal(false, xpath.parse('$title = /*/title').evaluateBoolean(context));
-            assert.equal('World', xpath.parse('$title').evaluateString(context));
-            assert.equal(false, xpath.parse('$hp:false').evaluateBoolean(context));
+            assert.strictEqual(true, xpath.parse('$hp:title = /*/title').evaluateBoolean(context));
+            assert.strictEqual(false, xpath.parse('$title = /*/title').evaluateBoolean(context));
+            assert.strictEqual('World', xpath.parse('$title').evaluateString(context));
+            assert.strictEqual(false, xpath.parse('$hp:false').evaluateBoolean(context));
             assert.notEqual(false, xpath.parse('$hp:falseStr').evaluateBoolean(context));
             assert.throws(function () {
                 xpath.parse('$hp:hello').evaluateString(context);
@@ -822,23 +822,23 @@ describe('xpath', () => {
 
             var simpleStep = parser.parse('my:book');
 
-            assert.equal(simpleStep.toString(), 'child::my:book');
+            assert.strictEqual(simpleStep.toString(), 'child::my:book');
 
             var precedingSib = parser.parse('preceding-sibling::my:chapter');
 
-            assert.equal(precedingSib.toString(), 'preceding-sibling::my:chapter');
+            assert.strictEqual(precedingSib.toString(), 'preceding-sibling::my:chapter');
 
             var withPredicates = parser.parse('book[number > 3][contains(title, "and the")]');
 
-            assert.equal(withPredicates.toString(), "child::book[(child::number > 3)][contains(child::title, 'and the')]");
+            assert.strictEqual(withPredicates.toString(), "child::book[(child::number > 3)][contains(child::title, 'and the')]");
 
             var parenthesisWithPredicate = parser.parse('(/books/book/chapter)[7]');
 
-            assert.equal(parenthesisWithPredicate.toString(), '(/child::books/child::book/child::chapter)[7]');
+            assert.strictEqual(parenthesisWithPredicate.toString(), '(/child::books/child::book/child::chapter)[7]');
 
             var charactersOver20 = parser.parse('heroes[age > 20] | villains[age > 20]');
 
-            assert.equal(charactersOver20.toString(), 'child::heroes[(child::age > 20)] | child::villains[(child::age > 20)]');
+            assert.strictEqual(charactersOver20.toString(), 'child::heroes[(child::age > 20)] | child::villains[(child::age > 20)]');
         });
     });
 
@@ -859,19 +859,19 @@ describe('xpath', () => {
 
             var greetings1 = noPrefixPath.select({ node: docHtml, allowAnyNamespaceForNoPrefix: false });
 
-            assert.equal(0, greetings1.length);
+            assert.strictEqual(0, greetings1.length);
 
             var allowAnyNamespaceOptions = { node: docHtml, allowAnyNamespaceForNoPrefix: true };
 
             // if allowAnyNamespaceForNoPrefix specified, allow using prefix-less node tests to match nodes with no prefix
             var greetings2 = noPrefixPath.select(allowAnyNamespaceOptions);
 
-            assert.equal(1, greetings2.length);
-            assert.equal('Hi Hermione!', greetings2[0].textContent);
+            assert.strictEqual(1, greetings2.length);
+            assert.strictEqual('Hi Hermione!', greetings2[0].textContent);
 
             var allGreetings = xpath.parse('/html/body/p').select(allowAnyNamespaceOptions);
 
-            assert.equal(2, allGreetings.length);
+            assert.strictEqual(2, allGreetings.length);
 
             var nsm = { html: xhtmlNs, other: 'http://www.example.com/other' };
 
@@ -881,7 +881,7 @@ describe('xpath', () => {
             // if the path uses prefixes, they have to match
             var greetings3 = prefixPath.select(optionsWithNamespaces);
 
-            assert.equal(2, greetings3.length);
+            assert.strictEqual(2, greetings3.length);
 
             var badPrefixPath = xpath.parse('/html:html/other:body/html:p');
 
@@ -899,27 +899,27 @@ describe('xpath', () => {
             // allow matching on unprefixed nodes
             var greetings1 = xpath.parse('/html/body/p').select({ node: docHtml, isHtml: true });
 
-            assert.equal(2, greetings1.length);
+            assert.strictEqual(2, greetings1.length);
 
             // allow case insensitive match
             var greetings2 = xpath.parse('/h:html/h:bOdY/h:p').select({ node: docHtml, namespaces: ns, isHtml: true });
 
-            assert.equal(2, greetings2.length);
+            assert.strictEqual(2, greetings2.length);
 
             // non-html mode: allow select if case and namespaces match
             var greetings3 = xpath.parse('/h:html/h:body/h:p').select({ node: docHtml, namespaces: ns });
 
-            assert.equal(2, greetings3.length);
+            assert.strictEqual(2, greetings3.length);
 
             // non-html mode: require namespaces
             var greetings4 = xpath.parse('/html/body/p').select({ node: docHtml, namespaces: ns });
 
-            assert.equal(0, greetings4.length);
+            assert.strictEqual(0, greetings4.length);
 
             // non-html mode: require case to match
             var greetings5 = xpath.parse('/h:html/h:bOdY/h:p').select({ node: docHtml, namespaces: ns });
 
-            assert.equal(0, greetings5.length);
+            assert.strictEqual(0, greetings5.length);
         });
     });
 
@@ -952,27 +952,27 @@ describe('xpath', () => {
                 andTheBooks = xpath.select("/books/book[contains(@title, ' ')]", doc),
                 secretBooks = xpath.select("/books/book[contains(@title, 'Secrets')]", doc);
 
-            assert.equal(andTheBooks.length, 2);
-            assert.equal(secretBooks.length, 1);
+            assert.strictEqual(andTheBooks.length, 2);
+            assert.strictEqual(secretBooks.length, 1);
         });
 
         it('should support builtin functions', () => {
             var translated = xpath.parse('translate("hello", "lhho", "yHb")').evaluateString();
 
-            assert.equal('Heyy', translated);
+            assert.strictEqual('Heyy', translated);
 
             var characters = new dom().parseFromString('<characters><character>Harry</character><character>Ron</character><character>Hermione</character></characters>');
 
             var firstTwo = xpath.parse('/characters/character[position() <= 2]').select({ node: characters });
 
-            assert.equal(2, firstTwo.length);
-            assert.equal('Harry', firstTwo[0].textContent);
-            assert.equal('Ron', firstTwo[1].textContent);
+            assert.strictEqual(2, firstTwo.length);
+            assert.strictEqual('Harry', firstTwo[0].textContent);
+            assert.strictEqual('Ron', firstTwo[1].textContent);
 
             var last = xpath.parse('/characters/character[last()]').select({ node: characters });
 
-            assert.equal(1, last.length);
-            assert.equal('Hermione', last[0].textContent);
+            assert.strictEqual(1, last.length);
+            assert.strictEqual('Hermione', last[0].textContent);
         });
     });
 
@@ -994,6 +994,10 @@ describe('xpath', () => {
 
             assert.ok(xpath.Step, "xpath.Step");
             assert.ok(xpath.NodeTest, "xpath.NodeTest");
+
+            assert.ok(xpath.OrOperation, "xpath.OrOperation");
+            assert.ok(xpath.AndOperation, "xpath.AndOperation");
+
             assert.ok(xpath.BarOperation, "xpath.BarOperation");
 
             assert.ok(xpath.NamespaceResolver, "xpath.NamespaceResolver");
@@ -1016,7 +1020,7 @@ describe('xpath', () => {
 
             assert.ok(xpath.select1('/book/characters', doc));
 
-            assert.equal(xpath.select1('local-name(/book/characters)', doc), 'characters');
+            assert.strictEqual(xpath.select1('local-name(/book/characters)', doc), 'characters');
         });
     });
 });
