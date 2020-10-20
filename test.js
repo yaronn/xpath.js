@@ -976,6 +976,30 @@ describe('xpath', () => {
         });
     });
 
+    describe('.parse()', () => {
+        it('should correctly set types on path steps', () => {
+            const parsed = xpath.parse('./my:*/my:name');
+
+            const steps = parsed.expression.expression.locationPath.steps;
+
+            const step0 = steps[0];
+
+            assert.strictEqual(xpath.NodeTest.NODE, step0.nodeTest.type);
+
+            const step1 = steps[1];
+
+            assert.strictEqual(xpath.NodeTest.NAMETESTPREFIXANY, step1.nodeTest.type);
+            assert.strictEqual('my', step1.nodeTest.prefix);
+
+            const step2 = steps[2];
+
+            assert.strictEqual(xpath.NodeTest.NAMETESTQNAME, step2.nodeTest.type);
+            assert.strictEqual('my', step2.nodeTest.prefix);
+            assert.strictEqual('name', step2.nodeTest.localName);
+            assert.strictEqual('my:name', step2.nodeTest.name);
+        });
+    })
+
     describe('miscellaneous', () => {
         it('should create XPathExceptions that act like Errors', () => {
             try {

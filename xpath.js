@@ -2319,12 +2319,10 @@ var xpath = (typeof exports === 'undefined') ? {} : exports;
     NodeTest.makeNodeTestType = function (type, members, ctor) {
         var newType = ctor || function () { };
 
-        newType.prototype = new NodeTest(members.type);
-        newType.prototype.constructor = type;
+        newType.prototype = new NodeTest(type);
+        newType.prototype.constructor = newType;
 
-        for (var key in members) {
-            newType.prototype[key] = members[key];
-        }
+        assign(newType.prototype, members);
 
         return newType;
     };
@@ -2364,32 +2362,40 @@ var xpath = (typeof exports === 'undefined') ? {} : exports;
             : localName === nLocalName;
     };
 
-    NodeTest.NameTestPrefixAny = NodeTest.makeNodeTestType(NodeTest.NAMETESTPREFIXANY, {
-        matches: function (n, xpc) {
-            return NodeTest.isElementOrAttribute(n) &&
-                NodeTest.nameSpaceMatches(this.prefix, xpc, n);
+    NodeTest.NameTestPrefixAny = NodeTest.makeNodeTestType(
+        NodeTest.NAMETESTPREFIXANY,
+        {
+            matches: function (n, xpc) {
+                return NodeTest.isElementOrAttribute(n) &&
+                    NodeTest.nameSpaceMatches(this.prefix, xpc, n);
+            },
+            toString: function () {
+                return this.prefix + ":*";
+            }
         },
-        toString: function () {
-            return this.prefix + ":*";
-        }
-    }, function (prefix) { this.prefix = prefix; });
+        function NameTestPrefixAny(prefix) { this.prefix = prefix; }
+    );
 
-    NodeTest.NameTestQName = NodeTest.makeNodeTestType(NodeTest.NAMETESTQNAME, {
-        matches: function (n, xpc) {
-            return NodeTest.isNodeType([1, 2, XPathNamespace.XPATH_NAMESPACE_NODE])(n) &&
-                NodeTest.nameSpaceMatches(this.prefix, xpc, n) &&
-                NodeTest.localNameMatches(this.localName, xpc, n);
+    NodeTest.NameTestQName = NodeTest.makeNodeTestType(
+        NodeTest.NAMETESTQNAME,
+        {
+            matches: function (n, xpc) {
+                return NodeTest.isNodeType([1, 2, XPathNamespace.XPATH_NAMESPACE_NODE])(n) &&
+                    NodeTest.nameSpaceMatches(this.prefix, xpc, n) &&
+                    NodeTest.localNameMatches(this.localName, xpc, n);
+            },
+            toString: function () {
+                return this.name;
+            }
         },
-        toString: function () {
-            return this.name;
-        }
-    }, function (name) {
-        var nameParts = name.split(':');
+        function NameTestQName(name) {
+            var nameParts = name.split(':');
 
-        this.name = name;
-        this.prefix = nameParts.length > 1 ? nameParts[0] : null;
-        this.localName = nameParts[nameParts.length > 1 ? 1 : 0];
-    });
+            this.name = name;
+            this.prefix = nameParts.length > 1 ? nameParts[0] : null;
+            this.localName = nameParts[nameParts.length > 1 ? 1 : 0];
+        }
+    );
 
     NodeTest.PITest = NodeTest.makeNodeTestType(NodeTest.PI, {
         matches: function (n, xpc) {
