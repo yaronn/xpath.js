@@ -25,14 +25,14 @@ A plain object with variable names as the keys and variable values as the values
 
 Example usage:
 
-````
+````javascript
 var evaluator = xpath.parse('concat($character1, ", ", $character2, ", and ", $character3)');
 var mainCharacters = evaluator.evaluateString({
-	variables: {
-		character1: 'Harry',
+    variables: {
+        character1: 'Harry',
         character2: 'Ron',
         character3: 'Hermione'
-	}
+    }
 });
 ````
 
@@ -43,10 +43,10 @@ and returns a value based on the name and namespace.
 
 Example usage:
 
-````
+````javascript
 var evaluator = xpath.parse('concat($hp:character1, ", ", $hp:character2, ", and ", $hp:character3)');
 var mainCharacters = evaluator.evaluateString({
-	variables: function (name, namespace) {
+    variables: function (name, namespace) {
         if (namespace === 'http://sample.org/harrypotter/') {
             switch (name) {
                 case 'character1': return 'Harry';
@@ -54,7 +54,7 @@ var mainCharacters = evaluator.evaluateString({
                 case 'character3': return 'Hermione';
             }
         }
-	},
+    },
     namespaces: {
         hp: 'http://sample.org/harrypotter/'
     }
@@ -68,10 +68,10 @@ described above.
 
 Example usage:
 
-````
+````javascript
 var evaluator = xpath.parse('concat($hp:character1, ", ", $hp:character2, ", and ", $hp:character3)');
 var mainCharacters = evaluator.evaluateString({
-	variables: {
+    variables: {
         getVariable: function (name, namespace) {
             if (namespace === 'http://sample.org/harrypotter/') {
                 switch (name) {
@@ -80,7 +80,7 @@ var mainCharacters = evaluator.evaluateString({
                     case 'character3': return 'Hermione';
                 }
             }
-	    }
+        }
     },
     namespaces: {
         hp: 'http://sample.org/harrypotter/'
