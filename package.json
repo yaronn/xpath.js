@@ -1,7 +1,7 @@
 {
   "name": "xpath",
   "version": "0.0.32",
-  "description": "DOM 3 XPath implemention and helper for node.js.",
+  "description": "DOM 3 XPath implemention and helper for node.js and the web",
   "engines": {
     "node": ">=0.6.0"
   },
@@ -16,9 +16,9 @@
       "name": "James Rishe"
     }
   ],
-  "dependencies": {},
   "devDependencies": {
-    "xmldom": "^0.1.19"
+    "mocha": "^9.0.2",
+    "xmldom": "^0.6.0"
   },
   "typings": "./xpath.d.ts",
   "scripts": {
