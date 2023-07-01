@@ -17,7 +17,7 @@ Install with [npm](http://github.com/isaacs/npm):
 
 xpath is xml engine agnostic but we recommend [xmldom](https://github.com/xmldom/xmldom):
 
-    npm install xmldom
+    npm install @xmldom/xmldom
 
 ## API Documentation
 
