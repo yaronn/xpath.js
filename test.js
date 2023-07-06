@@ -4,6 +4,10 @@ const assert = require('assert');
 
 var xhtmlNs = 'http://www.w3.org/1999/xhtml';
 
+const parser = new dom();
+
+const parseXml = (xml, mimeType = 'text/xml') => parser.parseFromString(xml, mimeType);
+
 describe('xpath', () => {
     describe('api', () => {
         it('should contain the correct methods', () => {
@@ -14,7 +18,7 @@ describe('xpath', () => {
 
         it('should support .evaluate()', () => {
             var xml = '<book><title>Harry Potter</title></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var nodes = xpath.evaluate('//title', doc, null, xpath.XPathResult.ANY_TYPE, null).nodes;
 
             assert.strictEqual('title', nodes[0].localName);
@@ -24,7 +28,7 @@ describe('xpath', () => {
 
         it('should support .select()', () => {
             var xml = '<?book title="Harry Potter"?><?series title="Harry Potter"?><?series books="7"?><book><!-- This is a great book --><title>Harry Potter</title></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var nodes = xpath.select('//title', doc);
             assert.strictEqual('title', nodes[0].localName);
             assert.strictEqual('Harry Potter', nodes[0].firstChild.data);
@@ -59,14 +63,14 @@ describe('xpath', () => {
     describe('.select()', () => {
         it('should select single nodes', () => {
             var xml = '<book><title>Harry Potter</title></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             assert.strictEqual('title', xpath.select('//title[1]', doc)[0].localName);
         });
 
         it('should select text nodes', () => {
             var xml = '<book><title>Harry</title><title>Potter</title></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             assert.deepEqual('book', xpath.select('local-name(/book)', doc));
             assert.deepEqual('Harry,Potter', xpath.select('//title/text()', doc).toString());
@@ -74,14 +78,14 @@ describe('xpath', () => {
 
         it('should select number values', () => {
             var xml = '<book><title>Harry</title><title>Potter</title></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             assert.deepEqual(2, xpath.select('count(//title)', doc));
         });
 
         it('should select with namespaces', () => {
             var xml = '<book><title xmlns="myns">Harry Potter</title></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var nodes = xpath.select('//*[local-name(.)="title" and namespace-uri(.)="myns"]', doc);
             assert.strictEqual('title', nodes[0].localName);
@@ -94,7 +98,7 @@ describe('xpath', () => {
 
         it('should select with namespaces, using a resolver', () => {
             var xml = '<book xmlns:testns="http://example.com/test" xmlns:otherns="http://example.com/other"><otherns:title>Narnia</otherns:title><testns:title>Harry Potter</testns:title><testns:field testns:type="author">JKR</testns:field></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var resolver = {
                 mappings: {
@@ -117,7 +121,7 @@ describe('xpath', () => {
 
         it('should select from xml with a default namespace, using a resolver', () => {
             var xml = '<book xmlns="http://example.com/test"><title>Harry Potter</title><field type="author">JKR</field></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var resolver = {
                 mappings: {
@@ -135,7 +139,7 @@ describe('xpath', () => {
 
         it('should select with namespaces, prefixes different in xml and xpath, using a resolver', () => {
             var xml = '<book xmlns:testns="http://example.com/test"><testns:title>Harry Potter</testns:title><testns:field testns:type="author">JKR</testns:field></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var resolver = {
                 mappings: {
@@ -154,7 +158,7 @@ describe('xpath', () => {
 
         it('should select with namespaces, using namespace mappings', () => {
             var xml = '<book xmlns:testns="http://example.com/test"><testns:title>Harry Potter</testns:title><testns:field testns:type="author">JKR</testns:field></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var select = xpath.useNamespaces({ 'testns': 'http://example.com/test' });
 
             assert.strictEqual('Harry Potter', select('//testns:title/text()', doc)[0].nodeValue);
@@ -163,7 +167,7 @@ describe('xpath', () => {
 
         it('should select attributes', () => {
             var xml = '<author name="J. K. Rowling"></author>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var author = xpath.select1('/author/@name', doc).value;
             assert.strictEqual('J. K. Rowling', author);
@@ -173,7 +177,7 @@ describe('xpath', () => {
     describe('selection', () => {
         it('should select with multiple predicates', () => {
             var xml = '<characters><character name="Snape" sex="M" age="50" /><character name="McGonnagal" sex="F" age="65" /><character name="Harry" sex="M" age="14" /></characters>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var characters = xpath.select('/*/character[@sex = "M"][@age > 40]/@name', doc);
 
@@ -184,14 +188,14 @@ describe('xpath', () => {
         // https://github.com/goto100/xpath/issues/37
         it('should select multiple attributes', () => {
             var xml = '<authors><author name="J. K. Rowling" /><author name="Saeed Akl" /></authors>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var authors = xpath.select('/authors/author/@name', doc);
             assert.strictEqual(2, authors.length);
             assert.strictEqual('J. K. Rowling', authors[0].value);
 
             // https://github.com/goto100/xpath/issues/41
-            doc = new dom().parseFromString('<chapters><chapter v="1"/><chapter v="2"/><chapter v="3"/></chapters>');
+            doc = parseXml('<chapters><chapter v="1"/><chapter v="2"/><chapter v="3"/></chapters>');
             var nodes = xpath.select("/chapters/chapter/@v", doc);
             var values = nodes.map(function (n) { return n.value; });
 
@@ -215,7 +219,7 @@ describe('xpath', () => {
 
         it('should evaluate local-name() and name() on processing instructions', () => {
             var xml = '<?book-record added="2015-01-16" author="J.K. Rowling" ?><book>Harry Potter</book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var expectedName = 'book-record';
             var localName = xpath.select('local-name(/processing-instruction())', doc);
             var name = xpath.select('name(/processing-instruction())', doc);
@@ -226,14 +230,14 @@ describe('xpath', () => {
 
         it('should support substring-after()', () => {
             var xml = '<classmate>Hermione</classmate>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var part = xpath.select('substring-after(/classmate, "Her")', doc);
             assert.deepEqual('mione', part);
         });
 
         it('should support preceding:: on document fragments', () => {
-            var doc = new dom().parseFromString('<n />'),
+            var doc = parseXml('<n />'),
                 df = doc.createDocumentFragment(),
                 root = doc.createElement('book');
 
@@ -251,7 +255,7 @@ describe('xpath', () => {
         });
 
         it('should allow getting sorted and unsorted arrays from nodesets', () => {
-            const doc = new dom().parseFromString('<book><character>Harry</character><character>Ron</character><character>Hermione</character></book>');
+            const doc = parseXml('<book><character>Harry</character><character>Ron</character><character>Hermione</character></book>');
             const path = xpath.parse("/*/*[3] | /*/*[2] | /*/*[1]");
             const nset = path.evaluateNodeSet({ node: doc });
             const sorted = nset.toArray();
@@ -275,7 +279,7 @@ describe('xpath', () => {
                 '</houses>' +
                 '<honorStudents><student>Hermione</student><student>Luna</student></honorStudents></school>';
 
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var houses = xpath.parse('/school/houses/house[student = /school/honorStudents/student]').select({ node: doc });
 
             assert.strictEqual(houses.length, 2);
@@ -295,7 +299,7 @@ describe('xpath', () => {
                 '<courses><course minLevel="9">DADA</course><course minLevel="4">Charms</course></courses>' +
                 '</school>';
 
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var houses = xpath.parse('/school/houses/house[student/@level >= /school/courses/course/@minLevel]').select({ node: doc });
 
             assert.strictEqual(houses.length, 2);
@@ -308,7 +312,7 @@ describe('xpath', () => {
 
         it('should support various inequality expressions on nodesets', () => {
             var xml = "<books><book num='1' title='PS' /><book num='2' title='CoS' /><book num='3' title='PoA' /><book num='4' title='GoF' /><book num='5' title='OotP' /><book num='6' title='HBP' /><book num='7' title='DH' /></books>";
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var options = { node: doc, variables: { theNumber: 3, theString: '3', theBoolean: true } };
 
@@ -352,7 +356,7 @@ describe('xpath', () => {
         });
 
         it('should correctly evaluate context position', () => {
-            var doc = new dom().parseFromString("<books><book><chapter>The boy who lived</chapter><chapter>The vanishing glass</chapter></book><book><chapter>The worst birthday</chapter><chapter>Dobby's warning</chapter><chapter>The burrow</chapter></book></books>");
+            var doc = parseXml("<books><book><chapter>The boy who lived</chapter><chapter>The vanishing glass</chapter></book><book><chapter>The worst birthday</chapter><chapter>Dobby's warning</chapter><chapter>The burrow</chapter></book></books>");
 
             var chapters = xpath.parse('/books/book/chapter[2]').select({ node: doc });
 
@@ -380,7 +384,7 @@ describe('xpath', () => {
 
     describe('string()', () => {
         it('should work with no arguments', () => {
-            var doc = new dom().parseFromString('<book>Harry Potter</book>');
+            var doc = parseXml('<book>Harry Potter</book>');
 
             var rootElement = xpath.select1('/book', doc);
             assert.ok(rootElement, 'rootElement is null');
@@ -389,7 +393,7 @@ describe('xpath', () => {
         });
 
         it('should work on document fragments', () => {
-            var doc = new dom().parseFromString('<n />');
+            var doc = parseXml('<n />');
             var docFragment = doc.createDocumentFragment();
 
             var el = doc.createElement("book");
@@ -439,7 +443,7 @@ describe('xpath', () => {
 
         it('should provide correct string value for cdata sections', () => {
             const xml = "<people><person><![CDATA[Harry Potter]]></person><person>Ron <![CDATA[Weasley]]></person></people>";
-            const doc = new dom().parseFromString(xml);
+            const doc = parseXml(xml);
 
             const person1 = xpath.parse("/people/person").evaluateString({ node: doc });
             const person2 = xpath.parse("/people/person/text()").evaluateString({ node: doc });
@@ -454,7 +458,7 @@ describe('xpath', () => {
 
         it('should convert various node types to string values', () => {
             var xml = "<book xmlns:hp='http://harry'><!-- This describes the Harry Potter Book --><?author name='J.K. Rowling' ?><title lang='en'><![CDATA[Harry Potter & the Philosopher's Stone]]></title><character>Harry Potter</character></book>",
-                doc = new dom().parseFromString(xml),
+                doc = parseXml(xml),
                 allText = xpath.parse('.').evaluateString({ node: doc }),
                 ns = xpath.parse('*/namespace::*[name() = "hp"]').evaluateString({ node: doc }),
                 title = xpath.parse('*/title').evaluateString({ node: doc }),
@@ -499,7 +503,7 @@ describe('xpath', () => {
 
         it('should support select1()', () => {
             var xml = '<book><title>Harry Potter</title></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var parsed = xpath.parse('/*/title');
 
             assert.strictEqual(typeof parsed, 'object', 'parse() should return an object');
@@ -515,7 +519,7 @@ describe('xpath', () => {
 
         it('should support select()', () => {
             var xml = '<book><title>Harry Potter</title></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var parsed = xpath.parse('/*/title');
 
             assert.strictEqual(typeof parsed, 'object', 'parse() should return an object');
@@ -533,7 +537,7 @@ describe('xpath', () => {
 
         it('should support .evaluateString() and .evaluateNumber()', () => {
             var xml = '<book><title>Harry Potter</title><numVolumes>7</numVolumes></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var parsed = xpath.parse('/*/numVolumes');
 
             assert.strictEqual(typeof parsed, 'object', 'parse() should return an object');
@@ -550,7 +554,7 @@ describe('xpath', () => {
 
         it('should support .evaluateBoolean()', () => {
             var xml = '<book><title>Harry Potter</title></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var context = { node: doc };
 
             function evaluate(path) {
@@ -575,7 +579,7 @@ describe('xpath', () => {
                 '<ps:character>Quirrell</ps:character><ps:character>Fluffy</ps:character>' +
                 '<cs:character>Myrtle</cs:character><cs:character>Tom Riddle</cs:character>' +
                 '</characters>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var expr = xpath.parse('/characters/c:character');
             var countExpr = xpath.parse('count(/characters/c:character)');
@@ -622,7 +626,7 @@ describe('xpath', () => {
 
         it('should support custom functions', () => {
             var xml = '<book><title>Harry Potter</title></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var parsed = xpath.parse('concat(double(/*/title), " is cool")');
 
@@ -672,7 +676,7 @@ describe('xpath', () => {
 
         it('should support custom functions in namespaces', () => {
             var xml = '<book><title>Harry Potter</title><friend>Ron</friend><friend>Hermione</friend><friend>Neville</friend></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var parsed = xpath.parse('concat(hp:double(/*/title), " is 2 cool ", hp:square(2), " school")');
             var hpns = 'http://harry-potter.com';
@@ -735,7 +739,7 @@ describe('xpath', () => {
 
         it('should support xpath variables', () => {
             var xml = '<book><title>Harry Potter</title><volumes>7</volumes></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
 
             var variables = {
                 title: 'Harry Potter',
@@ -779,7 +783,7 @@ describe('xpath', () => {
 
         it('should support variables with namespaces', () => {
             var xml = '<book><title>Harry Potter</title><volumes>7</volumes></book>';
-            var doc = new dom().parseFromString(xml);
+            var doc = parseXml(xml);
             var hpns = 'http://harry-potter.com';
 
             var context = {
@@ -853,7 +857,7 @@ describe('xpath', () => {
                             </body>
                         </html>`;
 
-            var docHtml = new dom().parseFromString(markup, 'text/html');
+            var docHtml = parseXml(markup, 'text/html');
 
             var noPrefixPath = xpath.parse('/html/body/p[2]');
 
@@ -892,7 +896,7 @@ describe('xpath', () => {
 
         it('should support the isHtml option', () => {
             var markup = '<html><head></head><body><p>Hi Ron!</p><my:p xmlns:my="http://www.example.com/my">Hi Draco!</p><p>Hi Hermione!</p></body></html>';
-            var docHtml = new dom().parseFromString(markup, 'text/html');
+            var docHtml = parseXml(markup, 'text/html');
 
             var ns = { h: xhtmlNs };
 
@@ -948,7 +952,7 @@ describe('xpath', () => {
 
         // https://github.com/goto100/xpath/issues/32
         it('should support the contains() function on attributes', () => {
-            var doc = new dom().parseFromString("<books><book title='Harry Potter and the Philosopher\"s Stone' /><book title='Harry Potter and the Chamber of Secrets' /></books>"),
+            var doc = parseXml("<books><book title='Harry Potter and the Philosopher\"s Stone' /><book title='Harry Potter and the Chamber of Secrets' /></books>"),
                 andTheBooks = xpath.select("/books/book[contains(@title, ' ')]", doc),
                 secretBooks = xpath.select("/books/book[contains(@title, 'Secrets')]", doc);
 
@@ -961,7 +965,7 @@ describe('xpath', () => {
 
             assert.strictEqual('Heyy', translated);
 
-            var characters = new dom().parseFromString('<characters><character>Harry</character><character>Ron</character><character>Hermione</character></characters>');
+            var characters = parseXml('<characters><character>Harry</character><character>Ron</character><character>Hermione</character></characters>');
 
             var firstTwo = xpath.parse('/characters/character[position() <= 2]').select({ node: characters });
 
@@ -1038,7 +1042,7 @@ describe('xpath', () => {
         });
 
         it('should work with nodes created using DOM1 createElement()', () => {
-            var doc = new dom().parseFromString('<book />');
+            var doc = parseXml('<book />');
 
             doc.documentElement.appendChild(doc.createElement('characters'));
 
