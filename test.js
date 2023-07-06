@@ -1,5 +1,5 @@
 const xpath = require('./xpath.js');
-const dom = require('xmldom').DOMParser;
+const dom = require('@xmldom/xmldom').DOMParser;
 const assert = require('assert');
 
 var xhtmlNs = 'http://www.w3.org/1999/xhtml';
